@@ -9,5 +9,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     // optional<Usuario> es un metodo que puede devolver un usuario o no dependeindo si se encuentra en la DB.
     // findBy significa buscar por el campo que se le indique que en este caso es nombreUsuario.
-    Optional<Usuario> findBynombreUsuario(String usuarioNombre);
+    Optional<Usuario> findByNombreUsuario(String usuarioNombre);
 }
