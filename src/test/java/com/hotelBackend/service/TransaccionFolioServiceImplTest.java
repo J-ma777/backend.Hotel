@@ -1,6 +1,9 @@
 package com.hotelBackend.service;
 
 
+import com.hotelBackend.exception.ArticuloNoEncontradoException;
+import com.hotelBackend.exception.ReservaNoEnCasaException;
+import com.hotelBackend.exception.StockInsuficienteException;
 import com.hotelBackend.model.*;
 import com.hotelBackend.model.enums.EstadoReserva;
 import com.hotelBackend.model.enums.TipoTransaccion;
@@ -229,7 +232,7 @@ public class TransaccionFolioServiceImplTest {
                         1,
                         10L
                 )
-        ).isInstanceOf(RuntimeException.class);
+        ).isInstanceOf(ReservaNoEnCasaException.class);
     }
 
     @Test
@@ -257,6 +260,28 @@ public class TransaccionFolioServiceImplTest {
                         2,
                         10L
                 )
-        ).isInstanceOf(RuntimeException.class);
+        ).isInstanceOf(StockInsuficienteException.class);
+    }
+
+    @Test
+    @DisplayName("No permite consumo si el artículo no existe")
+    void registrarConsumo_articuloNoExiste() {
+
+        reserva.setEstado(EstadoReserva.EN_CASA);
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        when(articuloInventarioRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                transaccionFolioService.registrarConsumo(
+                        1L,
+                        99L,
+                        1,
+                        10L
+                )
+        ).isInstanceOf(ArticuloNoEncontradoException.class);
     }
 }

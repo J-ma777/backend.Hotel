@@ -1,5 +1,8 @@
 package com.hotelBackend.service.Implementaciones;
 
+import com.hotelBackend.exception.ArticuloNoEncontradoException;
+import com.hotelBackend.exception.ReservaNoEnCasaException;
+import com.hotelBackend.exception.StockInsuficienteException;
 import com.hotelBackend.model.ArticuloInventario;
 import com.hotelBackend.model.MovimientoInventario;
 import com.hotelBackend.model.Reserva;
@@ -97,25 +100,23 @@ public class TransaccionFolioServiceImpl implements TransaccionFolioService {
                 );
 
         if (reserva.getEstado() != EstadoReserva.EN_CASA) {
-            throw new RuntimeException(
-                    "Solo se pueden registrar consumos a reservas EN_CASA"
-            );
+            throw new ReservaNoEnCasaException(reservaId);
         }
 
         // Validación de Articulo de inventario y stock.
-        ArticuloInventario articulo = articuloInventarioRepository
-                .findById(articuloId)
-                .orElseThrow(() ->
-                        new RuntimeException("Artículo de inventario no encontrado")
-                );
+        ArticuloInventario articulo = articuloInventarioRepository.findById(articuloId)
+                .orElseThrow(() -> new ArticuloNoEncontradoException(articuloId));
 
         if (cantidad <= 0) {
             throw new RuntimeException("La cantidad debe ser mayor a cero");
         }
 
+
         if (articulo.getStockActual() < cantidad) {
-            throw new RuntimeException(
-                    "Stock insuficiente para el artículo: " + articulo.getNombre()
+            throw new StockInsuficienteException(
+                    articulo.getNombre(),
+                    articulo.getStockActual(),
+                    cantidad
             );
         }
 
