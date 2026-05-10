@@ -1,4 +1,4 @@
-package com.hotelBackend.service.Impl;
+package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.model.TipoHabitacion;
 import com.hotelBackend.repository.TipoHabitacionRepository;

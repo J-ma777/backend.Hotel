@@ -4,7 +4,7 @@ import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.TipoHabitacion;
 import com.hotelBackend.model.enums.EstadoHabitacion;
 import com.hotelBackend.repository.HabitacionRepository;
-import com.hotelBackend.service.Impl.HabitacionServiceImpl;
+import com.hotelBackend.service.Implementaciones.HabitacionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

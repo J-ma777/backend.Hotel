@@ -1,0 +1,14 @@
+package com.hotelBackend.service;
+
+import com.hotelBackend.model.MovimientoInventario;
+
+import java.util.List;
+
+public interface MovimientoInventarioService {
+
+    MovimientoInventario registrarEntrada(Long articuloId, Double cantidad, String motivo);
+
+    MovimientoInventario registrarSalida(Long articuloId, Double cantidad, String motivo);
+
+    List<MovimientoInventario> listarPorArticulo(Long articuloId);
+}

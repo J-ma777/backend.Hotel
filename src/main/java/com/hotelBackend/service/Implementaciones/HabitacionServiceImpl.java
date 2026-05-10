@@ -1,8 +1,9 @@
-package com.hotelBackend.service.Impl;
+package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.repository.HabitacionRepository;
 import com.hotelBackend.service.HabitacionService;
+import com.hotelBackend.service.PlanTarifarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.List;
 public class HabitacionServiceImpl implements HabitacionService {
 
     private final HabitacionRepository habitacionRepository;
+    private final PlanTarifarioService planTarifarioService;
 
     @Override
     public Habitacion guardar(Habitacion habitacion) {
