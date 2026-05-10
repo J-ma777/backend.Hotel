@@ -1,5 +1,6 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.exception.ReservaNoEncontradaException;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.PlanTarifario;
 import com.hotelBackend.model.Reserva;
@@ -94,7 +95,7 @@ class ReservaServiceImplTest {
         when(reservaRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class,
+        assertThrows(ReservaNoEncontradaException.class,
                 () -> reservaService.obtenerPorId(1L));
     }
 

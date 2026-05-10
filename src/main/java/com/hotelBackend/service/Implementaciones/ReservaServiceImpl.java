@@ -1,5 +1,6 @@
 package com.hotelBackend.service.Implementaciones;
 
+import com.hotelBackend.exception.ReservaNoEncontradaException;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.Reserva;
 import com.hotelBackend.model.enums.EstadoHabitacion;
@@ -63,7 +64,7 @@ public class ReservaServiceImpl implements ReservaService {
     public Reserva obtenerPorId(Long id) {
         return reservaRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Reserva no encontrada")
+                        new ReservaNoEncontradaException(id)
                 );
     }
 
