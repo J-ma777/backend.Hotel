@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: pms-postgres
+    environment:
+      POSTGRES_DB: pms_db
+      POSTGRES_USER: pms_user
+      POSTGRES_PASSWORD: pms_pass
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: .
+    container_name: pms-backend
+    depends_on:
+      - postgres
+    ports:
+      - "3030:3030"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pms_db
+      SPRING_DATASOURCE_USERNAME: pms_user
+      SPRING_DATASOURCE_PASSWORD: pms_pass
+      JWT_SECRET: clave_prueba_docker
+      JWT_EXPIRATION: 3600000
