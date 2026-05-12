@@ -26,15 +26,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
 
-    /**
-     * ESTE ES EL MÉTODO CLAVE
-     * Aquí indicamos qué endpoints NO deben pasar por el filtro JWT
-     */
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getServletPath().startsWith("/auth/");
-    }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -85,6 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 5️ Guardar en el contexto de seguridad
                 SecurityContextHolder.getContext()
                         .setAuthentication(authToken);
+
             }
         }
 

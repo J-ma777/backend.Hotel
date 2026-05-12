@@ -1,4 +1,6 @@
 package com.hotelBackend.controller.dto;
 
-public class RegistrarConsumoRequest {
-}
+public record RegistrarConsumoRequest (
+    Long articuloId,
+    int cantidad
+) {}

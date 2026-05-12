@@ -2,6 +2,7 @@ package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.model.ArticuloInventario;
 import com.hotelBackend.model.MovimientoInventario;
+import com.hotelBackend.model.Usuario;
 import com.hotelBackend.model.enums.TipoMovimiento;
 import com.hotelBackend.repository.ArticuloInventarioRepository;
 import com.hotelBackend.repository.MovimientoInventarioRepository;
@@ -29,6 +30,14 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
         this.movimientoRepository = movimientoRepository;
         this.articuloRepository = articuloRepository;
     }
+
+    @Override
+    public void registrarConsumo(
+            Long reservaId,
+            Long articuloId,
+            int cantidad,
+            Usuario registradoPor
+    ) {}
 
     @Override
     public MovimientoInventario registrarEntrada(Long articuloId, Double cantidad, String motivo) {

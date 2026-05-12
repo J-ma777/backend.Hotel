@@ -1,5 +1,6 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.controller.dto.CrearReservaRequest;
 import com.hotelBackend.model.Reserva;
 
 import java.math.BigDecimal;
@@ -7,7 +8,7 @@ import java.util.List;
 
 public interface ReservaService {
 
-    Reserva crear(Reserva reserva);
+    Reserva crear(CrearReservaRequest request);
 
     List<Reserva> listar();
 

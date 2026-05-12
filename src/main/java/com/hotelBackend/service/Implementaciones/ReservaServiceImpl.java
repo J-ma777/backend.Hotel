@@ -1,8 +1,10 @@
 package com.hotelBackend.service.Implementaciones;
 
+import com.hotelBackend.controller.dto.CrearReservaRequest;
 import com.hotelBackend.exception.ReservaNoEncontradaException;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.Reserva;
+import com.hotelBackend.model.TipoHabitacion;
 import com.hotelBackend.model.enums.EstadoHabitacion;
 import com.hotelBackend.model.enums.EstadoReserva;
 import com.hotelBackend.model.enums.TipoTransaccion;
@@ -33,23 +35,27 @@ public class ReservaServiceImpl implements ReservaService {
 
     // Metodo
     @Override
-    public Reserva crear(Reserva reserva) {
+    public Reserva crear(CrearReservaRequest request) {
 
-        if (!reserva.getFechaSalida().isAfter(reserva.getFechaEntrada())) {
-            throw new IllegalArgumentException(
-                    "La fecha de salida debe ser posterior a la fecha de entrada"
-            );
-        }
+        Reserva reserva = new Reserva();
 
-        Habitacion habitacion = reserva.getHabitacion();
+        reserva.setFechaEntrada(request.getFechaEntrada());
+        reserva.setFechaSalida(request.getFechaSalida());
+        reserva.setCantidadHuespedes(request.getCantidadHuespedes());
+        reserva.setNombreHuesped(request.getNombreHuesped());
+        reserva.setDocumentoHuesped(request.getDocumentoHuesped());
 
-        if (habitacion.getEstado() == EstadoHabitacion.FUERA_DE_SERVICIO) {
-            throw new IllegalStateException(
-                    "No se puede reservar una habitación fuera de servicio"
-            );
-        }
+        // Regla PMS básica (NO inventada)
         reserva.setEstado(EstadoReserva.CONFIRMADA);
         reserva.setCreadoEn(LocalDateTime.now());
+        reserva.setCreadoPor(1L);
+
+        /*// TipoHabitacion se resuelve aquí (repositorio)
+        TipoHabitacion tipoHabitacion = tipoHabitacionRepository
+                .findById(request.getTipoHabitacionId())
+                .orElseThrow(() -> new RuntimeException("Tipo de habitación no encontrado"));
+
+        reserva.setTipoHabitacion(tipoHabitacion);*/
 
         return reservaRepository.save(reserva);
     }

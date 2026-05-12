@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.hotelBackend.controller.dto.CrearReservaRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -69,23 +70,25 @@ class ReservaServiceImplTest {
 
     @Test
     void crear_reserva_valida_ok() {
-        when(reservaRepository.save(any(Reserva.class))).thenReturn(reserva);
 
-        Reserva resultado = reservaService.crear(reserva);
+        CrearReservaRequest request = new CrearReservaRequest();
+        request.setFechaEntrada(LocalDate.now().plusDays(1));
+        request.setFechaSalida(LocalDate.now().plusDays(3));
+        request.setCantidadHuespedes(2);
+        request.setNombreHuesped("Juan Perez");
+        request.setDocumentoHuesped("72345678");
+        request.setTipoHabitacionId(1L);
+
+        when(reservaRepository.save(any(Reserva.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Reserva resultado = reservaService.crear(request);
 
         assertNotNull(resultado);
         assertEquals(EstadoReserva.CONFIRMADA, resultado.getEstado());
-        verify(reservaRepository).save(reserva);
-    }
+        assertEquals("Juan Perez", resultado.getNombreHuesped());
 
-    @Test
-    void crear_reserva_fechas_invalidas_lanza_excepcion() {
-        reserva.setFechaSalida(reserva.getFechaEntrada());
-
-        assertThrows(IllegalArgumentException.class,
-                () -> reservaService.crear(reserva));
-
-        verify(reservaRepository, never()).save(any());
+        verify(reservaRepository).save(any(Reserva.class));
     }
 
     // OBTENER

@@ -38,7 +38,7 @@ class ArticuloInventarioServiceTest {
         a2.setStockActual(5.0);
         a2.setStockMinimo(10.0);
 
-        when(repository.findByStockActualLessThanEqualStockMinimoOrderByStockActualAsc())
+        when(repository.findConStockBajo())
                 .thenReturn(List.of(a1, a2));
 
         List<ArticuloInventario> alertas =

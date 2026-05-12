@@ -49,6 +49,6 @@ public class ArticuloInventarioServiceImpl implements ArticuloInventarioService 
     @Override
     public List<ArticuloInventario> obtenerArticulosConStockMinimo() {
         return articuloInventarioRepository
-                .findByStockActualLessThanEqualStockMinimoOrderByStockActualAsc();
+                .findConStockBajo();
     }
 }

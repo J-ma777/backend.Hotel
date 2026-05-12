@@ -1,7 +1,9 @@
 package com.hotelBackend.controller;
 
+import com.hotelBackend.controller.dto.CrearReservaRequest;
 import com.hotelBackend.model.Reserva;
 import com.hotelBackend.service.ReservaService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +32,8 @@ public class ReservaController {
 
     @PreAuthorize("hasAuthority('RESERVA_CREAR')")
     @PostMapping
-    public Reserva crear(@RequestBody Reserva reserva) {
-        return reservaService.crear(reserva);
+    public Reserva crear(@Valid @RequestBody CrearReservaRequest request) {
+        return reservaService.crear(request);
     }
 
     @PreAuthorize("hasAuthority('RESERVA_EDITAR')")
