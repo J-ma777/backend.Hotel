@@ -2,6 +2,7 @@ package com.hotelBackend.controller;
 
 import com.hotelBackend.model.RegistroLimpieza;
 import com.hotelBackend.model.enums.EstadoHabitacion;
+import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.RegistroLimpiezaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,15 +22,14 @@ public class RegistroLimpiezaController {
     public ResponseEntity<RegistroLimpieza> registrarCambioEstado(
             @PathVariable Long habitacionId,
             @RequestParam EstadoHabitacion estadoNuevo,
-            @RequestParam(required = false) String notas,
-            @RequestParam Long usuarioId
+            @RequestParam(required = false) String notas
     ) {
         return ResponseEntity.ok(
                 registroLimpiezaService.registrarCambioEstado(
                         habitacionId,
                         estadoNuevo,
                         notas,
-                        usuarioId
+                        AuthUtil.getCurrentUserId()
                 )
         );
     }

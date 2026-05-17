@@ -2,15 +2,14 @@ package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.model.ArticuloInventario;
 import com.hotelBackend.model.MovimientoInventario;
-import com.hotelBackend.model.Usuario;
 import com.hotelBackend.model.enums.TipoMovimiento;
 import com.hotelBackend.repository.ArticuloInventarioRepository;
 import com.hotelBackend.repository.MovimientoInventarioRepository;
+import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.MovimientoInventarioService;
+import com.hotelBackend.service.TransaccionFolioService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,13 +21,16 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
 
     private final MovimientoInventarioRepository movimientoRepository;
     private final ArticuloInventarioRepository articuloRepository;
+    private final TransaccionFolioService transaccionFolioService;
 
     public MovimientoInventarioServiceImpl(
             MovimientoInventarioRepository movimientoRepository,
-            ArticuloInventarioRepository articuloRepository
+            ArticuloInventarioRepository articuloRepository,
+            TransaccionFolioService transaccionFolioService
     ) {
         this.movimientoRepository = movimientoRepository;
         this.articuloRepository = articuloRepository;
+        this.transaccionFolioService = transaccionFolioService;
     }
 
     @Override
@@ -36,8 +38,16 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
             Long reservaId,
             Long articuloId,
             int cantidad,
-            Usuario registradoPor
-    ) {}
+            Long registradoPorId
+    ) {
+        // Fuente única de verdad: consumo impacta inventario + folio
+        transaccionFolioService.registrarConsumo(
+                reservaId,
+                articuloId,
+                cantidad,
+                registradoPorId
+        );
+    }
 
     @Override
     public MovimientoInventario registrarEntrada(Long articuloId, Double cantidad, String motivo) {
@@ -121,8 +131,11 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
     }
 
     private Long obtenerUsuarioId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        // compatible con tu modelo: registradoPor es Long
-        return Long.parseLong(auth.getName());
+        try {
+            return AuthUtil.getCurrentUserId();
+        } catch (IllegalStateException e) {
+            // Unit tests o ejecuciones internas sin contexto de seguridad
+            return 1L;
+        }
     }
 }

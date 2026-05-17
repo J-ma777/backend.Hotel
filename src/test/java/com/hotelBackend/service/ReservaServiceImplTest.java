@@ -1,6 +1,9 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.exception.EstadoReservaInvalidoException;
+import com.hotelBackend.exception.HabitacionNoDisponibleException;
 import com.hotelBackend.exception.ReservaNoEncontradaException;
+import com.hotelBackend.exception.ValidacionFechasException;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.PlanTarifario;
 import com.hotelBackend.model.Reserva;
@@ -46,31 +49,35 @@ class ReservaServiceImplTest {
     private ReservaServiceImpl reservaService;
 
     private Reserva reserva;
+    private Habitacion habitacion;
+    private TipoHabitacion tipoHabitacion;
 
     @BeforeEach
     void setUp() {
-        reserva = new Reserva();
-        reserva.setId(1L);
-        reserva.setFechaEntrada(LocalDate.now().plusDays(1));
-        reserva.setFechaSalida(LocalDate.now().plusDays(3));
-        reserva.setEstado(EstadoReserva.CONFIRMADA);
-
-        Habitacion habitacion = new Habitacion();
-        habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
-
-        TipoHabitacion tipoHabitacion = new TipoHabitacion();
+        tipoHabitacion = new TipoHabitacion();
         tipoHabitacion.setId(1L);
         tipoHabitacion.setNombre("Habitación Estándar");
+        tipoHabitacion.setCapacidad(2);
 
+        habitacion = new Habitacion();
+        habitacion.setId(1L);
+        habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
         habitacion.setTipoHabitacion(tipoHabitacion);
+
+        reserva = new Reserva();
+        reserva.setId(1L);
+        // Usar fechas que permitan check-in hoy
+        reserva.setFechaEntrada(LocalDate.now());
+        reserva.setFechaSalida(LocalDate.now().plusDays(3));
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        reserva.setCantidadHuespedes(2);
         reserva.setHabitacion(habitacion);
     }
 
-    // CREAR RESERVA
+    // ========== CREAR RESERVA ==========
 
     @Test
     void crear_reserva_valida_ok() {
-
         CrearReservaRequest request = new CrearReservaRequest();
         request.setFechaEntrada(LocalDate.now().plusDays(1));
         request.setFechaSalida(LocalDate.now().plusDays(3));
@@ -82,16 +89,28 @@ class ReservaServiceImplTest {
         when(reservaRepository.save(any(Reserva.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Reserva resultado = reservaService.crear(request);
+        Reserva resultado = reservaService.crear(request, 1L);
 
         assertNotNull(resultado);
         assertEquals(EstadoReserva.CONFIRMADA, resultado.getEstado());
         assertEquals("Juan Perez", resultado.getNombreHuesped());
+        assertEquals(1L, resultado.getCreadoPor());
 
         verify(reservaRepository).save(any(Reserva.class));
     }
 
-    // OBTENER
+    // ========== OBTENER ==========
+
+    @Test
+    void obtenerPorId_existe_ok() {
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        Reserva resultado = reservaService.obtenerPorId(1L);
+
+        assertNotNull(resultado);
+        assertEquals(1L, resultado.getId());
+    }
 
     @Test
     void obtenerPorId_no_existente_lanza_excepcion() {
@@ -102,11 +121,10 @@ class ReservaServiceImplTest {
                 () -> reservaService.obtenerPorId(1L));
     }
 
-    // CANCELAR
+    // ========== CANCELAR ==========
 
     @Test
     void cancelar_reserva_confirmada_ok() {
-        Habitacion habitacion = reserva.getHabitacion();
         habitacion.setEstado(EstadoHabitacion.OCUPADA);
 
         when(reservaRepository.findById(1L))
@@ -133,60 +151,148 @@ class ReservaServiceImplTest {
                 () -> reservaService.cancelar(1L));
     }
 
-    // CHECK-IN (MARCAR EN CASA)
+    // ========== CHECK-IN (MARCAR EN CASA) ==========
 
     @Test
     void marcar_en_casa_desde_confirmada_ok() {
-
         PlanTarifario tarifa = new PlanTarifario();
         tarifa.setNombre("Tarifa Test");
         tarifa.setPrecioPorNoche(BigDecimal.valueOf(100));
 
         when(planTarifarioService.obtenerTarifaParaNoche(anyLong(), any()))
                 .thenReturn(tarifa);
-
         when(reservaRepository.findById(1L))
                 .thenReturn(Optional.of(reserva));
         when(habitacionRepository.save(any()))
-                .thenReturn(reserva.getHabitacion());
+                .thenReturn(habitacion);
         when(reservaRepository.save(any()))
                 .thenReturn(reserva);
 
         Reserva resultado = reservaService.marcarEnCasa(1L);
 
         assertEquals(EstadoReserva.EN_CASA, resultado.getEstado());
-        assertEquals(EstadoHabitacion.OCUPADA,
-                reserva.getHabitacion().getEstado());
+        assertEquals(EstadoHabitacion.OCUPADA, habitacion.getEstado());
+        verify(transaccionFolioService, atLeastOnce()).registrarTransaccion(anyLong(), any(), anyString(), any(BigDecimal.class), anyInt(), any());
     }
 
-    // CHECKOUT
+    @Test
+    void marcar_en_casa_desde_estado_invalido_lanza_excepcion() {
+        reserva.setEstado(EstadoReserva.EN_CASA);
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(EstadoReservaInvalidoException.class,
+                () -> reservaService.marcarEnCasa(1L));
+    }
 
     @Test
-    void checkout_desde_en_casa_ok() {
+    void marcar_en_casa_con_fecha_futura_lanza_excepcion() {
+        reserva.setFechaEntrada(LocalDate.now().plusDays(10));
 
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(ValidacionFechasException.class,
+                () -> reservaService.marcarEnCasa(1L));
+    }
+
+    @Test
+    void marcar_en_casa_con_fecha_pasada_lanza_excepcion() {
+        reserva.setFechaSalida(LocalDate.now().minusDays(1));
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(ValidacionFechasException.class,
+                () -> reservaService.marcarEnCasa(1L));
+    }
+
+    @Test
+    void marcar_en_casa_habitacion_fuera_servicio_lanza_excepcion() {
+        habitacion.setEstado(EstadoHabitacion.FUERA_DE_SERVICIO);
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(HabitacionNoDisponibleException.class,
+                () -> reservaService.marcarEnCasa(1L));
+    }
+
+    @Test
+    void marcar_en_casa_habitacion_ocupada_lanza_excepcion() {
+        habitacion.setEstado(EstadoHabitacion.OCUPADA);
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(HabitacionNoDisponibleException.class,
+                () -> reservaService.marcarEnCasa(1L));
+    }
+
+    @Test
+    void marcar_en_casa_excede_capacidad_lanza_excepcion() {
+        reserva.setCantidadHuespedes(5);  // Capacidad es 2
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(ValidacionFechasException.class,
+                () -> reservaService.marcarEnCasa(1L));
+    }
+
+    @Test
+    void marcar_en_casa_sin_habitacion_asignada_lanza_excepcion() {
+        reserva.setHabitacion(null);
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(HabitacionNoDisponibleException.class,
+                () -> reservaService.marcarEnCasa(1L));
+    }
+
+    // ========== CHECK-OUT (REALIZAR CHECKOUT) ==========
+
+    @Test
+    void realizar_checkout_desde_en_casa_ok() {
         reserva.setEstado(EstadoReserva.EN_CASA);
-        reserva.getHabitacion().setEstado(EstadoHabitacion.OCUPADA);
+        habitacion.setEstado(EstadoHabitacion.OCUPADA);
 
         when(reservaRepository.findById(1L))
                 .thenReturn(Optional.of(reserva));
         when(habitacionRepository.save(any()))
-                .thenReturn(reserva.getHabitacion());
+                .thenReturn(habitacion);
         when(reservaRepository.save(any()))
                 .thenReturn(reserva);
 
         Reserva resultado = reservaService.realizarCheckout(1L);
 
         assertEquals(EstadoReserva.SALIDA_CHECKOUT, resultado.getEstado());
-        assertEquals(EstadoHabitacion.DISPONIBLE,
-                reserva.getHabitacion().getEstado());
+        assertEquals(EstadoHabitacion.DISPONIBLE, habitacion.getEstado());
     }
 
     @Test
-    void checkout_desde_estado_invalido_lanza_excepcion() {
+    void realizar_checkout_desde_estado_invalido_lanza_excepcion() {
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+
         when(reservaRepository.findById(1L))
                 .thenReturn(Optional.of(reserva));
 
-        assertThrows(IllegalStateException.class,
+        assertThrows(EstadoReservaInvalidoException.class,
+                () -> reservaService.realizarCheckout(1L));
+    }
+
+    @Test
+    void realizar_checkout_sin_habitacion_asignada_lanza_excepcion() {
+        reserva.setEstado(EstadoReserva.EN_CASA);
+        reserva.setHabitacion(null);
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(HabitacionNoDisponibleException.class,
                 () -> reservaService.realizarCheckout(1L));
     }
 }
+

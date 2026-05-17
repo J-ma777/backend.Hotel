@@ -32,3 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 src/main/resources/application.properties
+API_FRONTEND.md
+CAMBIOS_COMPLETADOS.md
+GUIA_DESPLIEGUE.md
+HELP.md
+README_PROYECTO.md
+RESUMEN_FINAL.md
+STATUS.txt

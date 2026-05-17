@@ -1,6 +1,7 @@
 package com.hotelBackend.controller;
 
 import com.hotelBackend.controller.dto.RegistrarConsumoRequest;
+import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.MovimientoInventarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class ConsumoController {
                 reservaId,
                 request.articuloId(),
                 request.cantidad(),
-                null
+                AuthUtil.getCurrentUserId()
         );
     }
 

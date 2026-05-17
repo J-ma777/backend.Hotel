@@ -19,7 +19,7 @@ public class ArticuloInventarioController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('INVENTARIO_GESTIONAR') or hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('INVENTARIO_GESTIONAR')")
     public ArticuloInventario crear(@RequestBody ArticuloInventario articulo) {
         return articuloInventarioService.crear(articulo);
     }

@@ -2,6 +2,7 @@ package com.hotelBackend.controller;
 
 import com.hotelBackend.controller.dto.CrearReservaRequest;
 import com.hotelBackend.model.Reserva;
+import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.ReservaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class ReservaController {
     @PreAuthorize("hasAuthority('RESERVA_CREAR')")
     @PostMapping
     public Reserva crear(@Valid @RequestBody CrearReservaRequest request) {
-        return reservaService.crear(request);
+        return reservaService.crear(request, AuthUtil.getCurrentUserId());
     }
 
     @PreAuthorize("hasAuthority('RESERVA_EDITAR')")

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ReservaService {
 
-    Reserva crear(CrearReservaRequest request);
+    Reserva crear(CrearReservaRequest request, Long userId);
 
     List<Reserva> listar();
 

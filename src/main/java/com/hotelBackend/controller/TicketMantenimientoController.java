@@ -1,6 +1,7 @@
 package com.hotelBackend.controller;
 
 import com.hotelBackend.model.TicketMantenimiento;
+import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.TicketMantenimientoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +18,10 @@ public class TicketMantenimientoController {
     @PutMapping("/{ticketId}/resolver")
     @PreAuthorize("hasAuthority('RESOLVER_TICKET')")
     public ResponseEntity<TicketMantenimiento> resolverTicket(
-            @PathVariable Long ticketId,
-            @RequestParam Long usuarioId
+            @PathVariable Long ticketId
     ) {
         TicketMantenimiento ticket =
-                ticketMantenimientoService.resolverTicket(ticketId, usuarioId);
+                ticketMantenimientoService.resolverTicket(ticketId, AuthUtil.getCurrentUserId());
 
         return ResponseEntity.ok(ticket);
     }

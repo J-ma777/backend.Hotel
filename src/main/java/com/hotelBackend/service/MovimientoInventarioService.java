@@ -1,7 +1,6 @@
 package com.hotelBackend.service;
 
 import com.hotelBackend.model.MovimientoInventario;
-import com.hotelBackend.model.Usuario;
 
 import java.util.List;
 
@@ -17,6 +16,6 @@ public interface MovimientoInventarioService {
             Long reservaId,
             Long articuloId,
             int cantidad,
-            Usuario registradoPor
+            Long registradoPorId
     );
 }

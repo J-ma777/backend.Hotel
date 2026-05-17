@@ -2,6 +2,7 @@ package com.hotelBackend.controller;
 
 import com.hotelBackend.model.TransaccionFolio;
 import com.hotelBackend.model.enums.TipoTransaccion;
+import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.TransaccionFolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,8 +26,7 @@ public class TransaccionFolioController {
             @PathVariable Long reservaId,
             @RequestParam String descripcion,
             @RequestParam BigDecimal precioUnitario,
-            @RequestParam Integer cantidad,
-            @RequestParam Long registradoPor
+            @RequestParam Integer cantidad
     ) {
         return transaccionFolioService.registrarTransaccion(
                 reservaId,
@@ -34,7 +34,7 @@ public class TransaccionFolioController {
                 descripcion,
                 precioUnitario,
                 cantidad,
-                registradoPor
+                AuthUtil.getCurrentUserId()
         );
     }
 
@@ -42,8 +42,7 @@ public class TransaccionFolioController {
     @PostMapping("/reservas/{reservaId}/pagos")
     public TransaccionFolio registrarPago(
             @PathVariable Long reservaId,
-            @RequestParam BigDecimal monto,
-            @RequestParam Long registradoPor
+            @RequestParam BigDecimal monto
     ) {
         return transaccionFolioService.registrarTransaccion(
                 reservaId,
@@ -51,7 +50,7 @@ public class TransaccionFolioController {
                 "Pago recibido",
                 monto,
                 1,
-                registradoPor
+                AuthUtil.getCurrentUserId()
         );
     }
 
@@ -60,8 +59,7 @@ public class TransaccionFolioController {
     public TransaccionFolio registrarDescuento(
             @PathVariable Long reservaId,
             @RequestParam String descripcion,
-            @RequestParam BigDecimal monto,
-            @RequestParam Long registradoPor
+            @RequestParam BigDecimal monto
     ) {
         return transaccionFolioService.registrarTransaccion(
                 reservaId,
@@ -69,7 +67,7 @@ public class TransaccionFolioController {
                 descripcion,
                 monto,
                 1,
-                registradoPor
+                AuthUtil.getCurrentUserId()
         );
     }
 
