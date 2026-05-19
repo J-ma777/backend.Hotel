@@ -1,5 +1,6 @@
 package com.hotelBackend.security.jwt;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -67,6 +68,37 @@ public class JwtUtil {
                 .getExpiration();
 
         return expiration.before(new Date());
+    }
+
+    public List<String> extractAuthorities(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        Object raw = claims.get("authorities");
+        if (raw == null) {
+            return List.of();
+        }
+
+        if (raw instanceof List<?> list) {
+            return list.stream().map(String::valueOf).toList();
+        }
+
+        // fallback defensivo
+        return List.of(String.valueOf(raw));
+    }
+
+    public String extractUserId(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        Object raw = claims.get("userId");
+        return raw != null ? String.valueOf(raw) : null;
     }
 
 }

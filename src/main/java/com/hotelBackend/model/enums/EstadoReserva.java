@@ -2,6 +2,7 @@ package com.hotelBackend.model.enums;
 
 public enum EstadoReserva {
 
+    PENDIENTE,
     CONFIRMADA,
     EN_CASA,
     SALIDA_CHECKOUT,

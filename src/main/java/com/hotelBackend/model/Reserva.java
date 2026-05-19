@@ -49,7 +49,8 @@ public class Reserva {
     private Long creadoPor;            // ID del recepcionista (auditoría)
 
     @ManyToOne
-    @JoinColumn(name = "habitacion_id", nullable = false)
+    @JoinColumn(name = "habitacion_id", nullable = true) // Acá tube problemas, ya que cuando estaba en folse,
+    // no cambiaba de pendiente a confirmada, y no se asignaba la habitacion, por lo que al ser null, no se asignaba la habitacion, y no se cambiaba el estado a confirmada.
     private Habitacion habitacion;
 
 }

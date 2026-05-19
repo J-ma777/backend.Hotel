@@ -92,11 +92,36 @@ class ReservaServiceImplTest {
         Reserva resultado = reservaService.crear(request, 1L);
 
         assertNotNull(resultado);
-        assertEquals(EstadoReserva.CONFIRMADA, resultado.getEstado());
+        assertEquals(EstadoReserva.PENDIENTE, resultado.getEstado());
         assertEquals("Juan Perez", resultado.getNombreHuesped());
         assertEquals(1L, resultado.getCreadoPor());
 
         verify(reservaRepository).save(any(Reserva.class));
+    }
+
+    @Test
+    void confirmar_reserva_pendiente_ok() {
+        reserva.setEstado(EstadoReserva.PENDIENTE);
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+        when(reservaRepository.save(any()))
+                .thenReturn(reserva);
+
+        Reserva resultado = reservaService.confirmar(1L);
+
+        assertEquals(EstadoReserva.CONFIRMADA, resultado.getEstado());
+    }
+
+    @Test
+    void confirmar_reserva_no_pendiente_lanza_excepcion() {
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+
+        when(reservaRepository.findById(1L))
+                .thenReturn(Optional.of(reserva));
+
+        assertThrows(EstadoReservaInvalidoException.class,
+                () -> reservaService.confirmar(1L));
     }
 
     // ========== OBTENER ==========
@@ -295,4 +320,3 @@ class ReservaServiceImplTest {
                 () -> reservaService.realizarCheckout(1L));
     }
 }
-

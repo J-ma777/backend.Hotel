@@ -13,8 +13,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
@@ -61,6 +63,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 4 Validar token
             if (jwtUtil.isTokenValid(jwtToken, userDetails)) {
 
+                // Diagnóstico: lo que el token realmente trae
+                try {
+                    var tokenAuthorities = jwtUtil.extractAuthorities(jwtToken);
+                    var tokenUserId = jwtUtil.extractUserId(jwtToken);
+                    log.info("[JWT_FILTER] request={} {} username={} tokenUserId={} tokenAuthorities={}",
+                            request.getMethod(), request.getRequestURI(), username, tokenUserId, tokenAuthorities);
+                } catch (Exception ignored) {
+                    // no bloquear request por logs
+                }
+
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -77,6 +89,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext()
                         .setAuthentication(authToken);
 
+                log.info("[JWT_FILTER] SecurityContext set username={} authorities={}",
+                        username, authToken.getAuthorities());
             }
         }
 

@@ -1,6 +1,7 @@
 package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.controller.dto.CrearReservaRequest;
+import com.hotelBackend.exception.EstadoReservaInvalidoException;
 import com.hotelBackend.exception.ReservaNoEncontradaException;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.Reserva;
@@ -14,6 +15,7 @@ import com.hotelBackend.service.PlanTarifarioService;
 import com.hotelBackend.service.ReservaService;
 import com.hotelBackend.service.TransaccionFolioService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ReservaServiceImpl implements ReservaService {
 
     private final ReservaRepository reservaRepository;
@@ -44,7 +47,9 @@ public class ReservaServiceImpl implements ReservaService {
         reserva.setDocumentoHuesped(request.getDocumentoHuesped());
 
         // Regla PMS básica (NO inventada)
-        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        // Estado inicial del flujo
+        // PENDIENTE -> (acción futura) CONFIRMADA -> EN_CASA -> SALIDA_CHECKOUT
+        reserva.setEstado(EstadoReserva.PENDIENTE);
         reserva.setCreadoEn(LocalDateTime.now());
         reserva.setCreadoPor(userId);
 
@@ -232,5 +237,37 @@ public class ReservaServiceImpl implements ReservaService {
             reserva.setEstado(EstadoReserva.NO_PRESENTADA);
             reservaRepository.save(reserva);
         }
+    }
+
+    @Override
+    public Reserva confirmar(Long id) {
+        log.info("[RESERVA_CONFIRMAR] iniciar confirmar(id={})", id);
+
+        // Búsqueda PURA por ID: 404 solo si realmente no existe
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new ReservaNoEncontradaException(id));
+
+        System.out.println("DEBUG: Reserva encontrada: " + reserva.getId());
+
+        log.info("[RESERVA_CONFIRMAR] reserva encontrada id={} estadoActual={}",
+                reserva.getId(), reserva.getEstado());
+
+        // Validación de negocio (estado) DESPUÉS de encontrar la reserva
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
+            log.warn("[RESERVA_CONFIRMAR] transición inválida id={} estadoActual={}",
+                    reserva.getId(), reserva.getEstado());
+
+            throw new EstadoReservaInvalidoException(
+                    "Solo se puede confirmar una reserva PENDIENTE. Estado actual: " + reserva.getEstado()
+            );
+        }
+
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        Reserva saved = reservaRepository.save(reserva);
+
+        log.info("[RESERVA_CONFIRMAR] confirmada OK id={} nuevoEstado={}",
+                saved.getId(), saved.getEstado());
+
+        return saved;
     }
 }
