@@ -1,6 +1,6 @@
 package com.hotelBackend.controller;
 
-import com.hotelBackend.controller.dto.RegistrarConsumoRequest;
+import com.hotelBackend.dto.request.RegistrarConsumoRequest;
 import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.MovimientoInventarioService;
 import jakarta.validation.Valid;

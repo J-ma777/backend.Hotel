@@ -1,6 +1,6 @@
 package com.hotelBackend.service.Implementaciones;
 
-import com.hotelBackend.controller.dto.CrearReservaRequest;
+import com.hotelBackend.dto.request.CrearReservaRequest;
 import com.hotelBackend.exception.EstadoReservaInvalidoException;
 import com.hotelBackend.exception.ReservaNoEncontradaException;
 import com.hotelBackend.model.Habitacion;

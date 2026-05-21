@@ -1,4 +1,4 @@
-package com.hotelBackend.controller.dto;
+package com.hotelBackend.dto.request;
 
 public record RegistrarConsumoRequest (
     Long articuloId,

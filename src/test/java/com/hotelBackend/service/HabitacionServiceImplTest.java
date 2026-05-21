@@ -1,5 +1,6 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.TipoHabitacion;
 import com.hotelBackend.model.enums.EstadoHabitacion;
@@ -79,7 +80,7 @@ class HabitacionServiceImplTest {
         when(habitacionRepository.findAll()).thenReturn(List.of(habitacion, habitacion2));
 
         // Act (actuar)
-        List<Habitacion> resultado = habitacionService.listar();
+        List<HabitacionResponse> resultado = habitacionService.listar();
 
         // Assert (afirmar)
         assertThat(resultado).isNotNull();

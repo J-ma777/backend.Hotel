@@ -1,5 +1,6 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
 import java.util.List;
 
@@ -10,7 +11,7 @@ public interface HabitacionService {
 
     Habitacion actualizar(Long id, Habitacion habitacion); // Edicion controlada, se actualiza solo si existe la habitación
 
-    List<Habitacion> listar(); // Vista general de todas las hbitaciones
+    List<HabitacionResponse> listar(); // Vista general de todas las hbitaciones
 
     Habitacion obtenerPorId(Long id); // Soporte a detalle/ edicion controlada, se obtiene solo si existe la habitación
 

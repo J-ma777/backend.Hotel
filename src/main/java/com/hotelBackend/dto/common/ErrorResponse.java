@@ -1,4 +1,4 @@
-package com.hotelBackend.controller.dto;
+package com.hotelBackend.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

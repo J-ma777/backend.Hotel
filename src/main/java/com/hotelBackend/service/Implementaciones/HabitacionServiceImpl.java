@@ -1,5 +1,6 @@
 package com.hotelBackend.service.Implementaciones;
 
+import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.repository.HabitacionRepository;
 import com.hotelBackend.service.HabitacionService;
@@ -37,9 +38,19 @@ public class HabitacionServiceImpl implements HabitacionService {
 
 
     @Override
-    public List<Habitacion> listar() {
-        return habitacionRepository.findAll();
+    public List<HabitacionResponse> listar() {
+        return habitacionRepository.findAll()
+                .stream()
+                .map(h -> new HabitacionResponse(
+                        h.getId(),
+                        h.getNumero(),
+                        h.getEstado().name(),
+                        h.getPiso(),
+                        h.getTipoHabitacion().getNombre()
+                ))
+                .toList();
     }
+
 
     @Override
     public Habitacion obtenerPorId(Long id) {

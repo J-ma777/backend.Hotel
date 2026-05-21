@@ -1,4 +1,4 @@
-package com.hotelBackend.controller.dto;
+package com.hotelBackend.dto.request;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;

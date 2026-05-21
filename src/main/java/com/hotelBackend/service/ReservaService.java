@@ -1,6 +1,6 @@
 package com.hotelBackend.service;
 
-import com.hotelBackend.controller.dto.CrearReservaRequest;
+import com.hotelBackend.dto.request.CrearReservaRequest;
 import com.hotelBackend.model.Reserva;
 
 import java.util.List;

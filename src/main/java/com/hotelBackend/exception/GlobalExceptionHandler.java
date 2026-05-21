@@ -1,6 +1,6 @@
 package com.hotelBackend.exception;
 
-import com.hotelBackend.controller.dto.ErrorResponse;
+import com.hotelBackend.dto.common.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

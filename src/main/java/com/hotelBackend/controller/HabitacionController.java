@@ -1,5 +1,6 @@
 package com.hotelBackend.controller;
 
+import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.service.HabitacionService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class HabitacionController {
 
     @PreAuthorize("hasAuthority('HABITACION_VER')")
     @GetMapping
-    public List<Habitacion> listar() {
+    public List<HabitacionResponse> listar() {
         return habitacionService.listar();
     }
 
