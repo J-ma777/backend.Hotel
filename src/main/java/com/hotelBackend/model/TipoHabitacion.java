@@ -28,4 +28,7 @@ public class TipoHabitacion {
     @Column(nullable = false)
     private Integer capacidad;      // máximo de huéspedes permitidos
 
+    @Column(name = "imagen_url", columnDefinition = "TEXT")
+    private String imagenUrl;
+
 }

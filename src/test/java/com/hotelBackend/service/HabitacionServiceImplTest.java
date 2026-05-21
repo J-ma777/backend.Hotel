@@ -34,7 +34,7 @@ class HabitacionServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        tipoHabitacion = new TipoHabitacion(1L, "Suite", "Habitación de lujo", 2);
+        tipoHabitacion = new TipoHabitacion(1L, "Suite", "Habitación de lujo", 2, null);
 
         habitacion = new Habitacion();
         habitacion.setId(1L);

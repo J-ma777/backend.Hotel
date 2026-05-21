@@ -78,20 +78,32 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
-    public Reserva cancelar(Long id) {
-        Reserva reserva = obtenerPorId(id);
 
-        if (reserva.getEstado() == EstadoReserva.SALIDA_CHECKOUT) {
-            throw new IllegalStateException(
-                    "No se puede cancelar una reserva finalizada"
+    public Reserva cancelar(Long id) {
+        // Buscar reserva (404 si no existe)
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new ReservaNoEncontradaException(id));
+
+        // SOLO permitir cancelar si está PENDIENTE o CONFIRMADA
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE &&
+                reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+
+            throw new EstadoReservaInvalidoException(
+                    "Solo se pueden cancelar reservas en estado PENDIENTE o CONFIRMADA. Estado actual: "
+                            + reserva.getEstado()
             );
         }
 
+        // Liberar habitación SOLO si existe
         Habitacion habitacion = reserva.getHabitacion();
-        habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
-        habitacionRepository.save(habitacion);
+        if (habitacion != null) {
+            habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+            habitacionRepository.save(habitacion);
+        }
 
+        // Cambiar estado de la reserva
         reserva.setEstado(EstadoReserva.CANCELADA);
+
         return reservaRepository.save(reserva);
     }
 

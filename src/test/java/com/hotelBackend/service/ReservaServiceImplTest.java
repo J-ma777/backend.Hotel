@@ -172,7 +172,7 @@ class ReservaServiceImplTest {
         when(reservaRepository.findById(1L))
                 .thenReturn(Optional.of(reserva));
 
-        assertThrows(IllegalStateException.class,
+        assertThrows(EstadoReservaInvalidoException.class,
                 () -> reservaService.cancelar(1L));
     }
 
