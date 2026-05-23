@@ -29,6 +29,9 @@ public class Reserva {
     @Column(name = "fecha_salida", nullable = false)
     private LocalDate fechaSalida;
 
+    @Column(name = "fecha_checkout")
+    private LocalDateTime fechaCheckout;
+
     @Column(name = "cantidad_huespedes", nullable = false)
     private Integer cantidadHuespedes;
 

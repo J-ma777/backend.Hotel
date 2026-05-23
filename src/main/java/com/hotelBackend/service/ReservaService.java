@@ -23,6 +23,8 @@ public interface ReservaService {
 
     Reserva marcarEnCasa(Long id);
 
+    Reserva realizarcheckIn(Long reservaId, Long habitacionId);
+
     Reserva realizarCheckout(Long id);
 
     void procesarNoPresentadas();

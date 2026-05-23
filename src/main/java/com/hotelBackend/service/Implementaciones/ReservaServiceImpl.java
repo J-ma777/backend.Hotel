@@ -2,6 +2,7 @@ package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.dto.request.CrearReservaRequest;
 import com.hotelBackend.exception.EstadoReservaInvalidoException;
+import com.hotelBackend.exception.HabitacionNoDisponibleException;
 import com.hotelBackend.exception.ReservaNoEncontradaException;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.Reserva;
@@ -199,57 +200,85 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
+    public Reserva realizarcheckIn(Long reservaId, Long habitacionId) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+
+        // Validad estado
+        if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+            throw new RuntimeException("Solo reservas CONFIRMADAS pueden hacer check-in");
+        }
+
+        // validar disponibilidad (MUY IMPORTANTE)
+        boolean conflicto = reservaRepository.existsConflicto(
+                habitacionId,
+                reserva.getFechaEntrada(),
+                reserva.getFechaSalida()
+        );
+
+        if (conflicto) {
+            throw new RuntimeException("La habitación ya no está disponible");
+        }
+
+        // Obtener habitación
+        Habitacion habitacion = habitacionRepository.findById(habitacionId)
+                .orElseThrow(() -> new RuntimeException("Habitación no encontrada"));
+
+        // Asignar habitación
+        reserva.setHabitacion(habitacion);
+
+        // Cambiar estado
+        reserva.setEstado(EstadoReserva.EN_CASA);
+
+        return reservaRepository.save(reserva);
+
+    }
+
+    @Override
+
     public Reserva realizarCheckout(Long id) {
-        // Validar reserva existe
+
+        // 1. Validar que exista la reserva
         Reserva reserva = obtenerPorId(id);
 
-        // Validar estado de reserva
+        // 2. Validar estado correcto
         if (reserva.getEstado() != EstadoReserva.EN_CASA) {
-            throw new com.hotelBackend.exception.EstadoReservaInvalidoException(
-                    "Solo se puede hacer checkout a una reserva EN_CASA. Estado actual: " + reserva.getEstado()
+            throw new EstadoReservaInvalidoException(
+                    "Solo se puede hacer checkout a una reserva EN_CASA. Estado actual: "
+                            + reserva.getEstado()
             );
         }
 
-        // Validar habitación existe
+        // 3. Obtener habitación asignada
         Habitacion habitacion = reserva.getHabitacion();
+
         if (habitacion == null) {
-            throw new com.hotelBackend.exception.HabitacionNoDisponibleException(
+            throw new HabitacionNoDisponibleException(
                     "La reserva no tiene habitación asignada"
             );
         }
 
-        // Liberar habitación (marcar como disponible)
-        // Nota: El estado SUCIA/LIMPIEZA es responsabilidad de RegistroLimpiezaService
+        // 4. Cambiar estado de habitación (flujo real de hotel)
+        // Opción bastate cvr ya que pasa a LIMPIEZA cuando el cliente sale
         habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+
+        // Si aún no manejas limpieza:
+        // habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+
         habitacionRepository.save(habitacion);
 
-        // Cambiar estado de reserva a SALIDA_CHECKOUT
+        // 5. Cambiar estado de la reserva
         reserva.setEstado(EstadoReserva.SALIDA_CHECKOUT);
+
+        // 6. Desvincular habitación (MUY IMPORTANTE)
+        reserva.setHabitacion(null);
+
+        // 7. Registrar fecha real de salida (opcional pero PRO)
+        reserva.setFechaCheckout(LocalDateTime.now());
+
         return reservaRepository.save(reserva);
     }
 
-    // MÉTODO PARA MARCAR UNA RESERVA COMO NO_PRESENTADA
-    @Override
-    public void procesarNoPresentadas() {
-
-        LocalDate hoy = LocalDate.now();
-
-        List<Reserva> reservas = reservaRepository
-                .findByEstadoAndFechaEntradaBefore(
-                        EstadoReserva.CONFIRMADA,
-                        hoy
-                );
-
-        for (Reserva reserva : reservas) {
-
-            Habitacion habitacion = reserva.getHabitacion();
-            habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
-            habitacionRepository.save(habitacion);
-
-            reserva.setEstado(EstadoReserva.NO_PRESENTADA);
-            reservaRepository.save(reserva);
-        }
-    }
 
     @Override
     public Reserva confirmar(Long id) {
@@ -281,5 +310,10 @@ public class ReservaServiceImpl implements ReservaService {
                 saved.getId(), saved.getEstado());
 
         return saved;
+    }
+
+    @Override
+    public void procesarNoPresentadas(){
+        // lOGICA FUTURA
     }
 }

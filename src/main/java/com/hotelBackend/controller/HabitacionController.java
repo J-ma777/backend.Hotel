@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 @RestController
 @RequestMapping("/habitaciones")
@@ -20,6 +21,15 @@ public class HabitacionController {
     @GetMapping
     public List<HabitacionResponse> listar() {
         return habitacionService.listar();
+    }
+
+    @PreAuthorize("hasAuthority('HABITACION_VER')")
+    @GetMapping("/disponibles")
+    public List<HabitacionResponse> disponibles(
+            @RequestParam LocalDate inicio,
+            @RequestParam LocalDate fin
+    ){
+        return  habitacionService.buscarDisponibles(inicio, fin);
     }
 
     @PreAuthorize("hasAuthority('HABITACION_VER')")

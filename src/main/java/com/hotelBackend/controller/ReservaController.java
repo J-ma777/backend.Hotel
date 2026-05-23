@@ -1,5 +1,6 @@
 package com.hotelBackend.controller;
 
+import com.hotelBackend.dto.request.CheckInRequest;
 import com.hotelBackend.dto.request.CrearReservaRequest;
 import com.hotelBackend.model.Reserva;
 import com.hotelBackend.security.util.AuthUtil;
@@ -43,8 +44,8 @@ public class ReservaController {
 
     @PreAuthorize("hasAuthority('RESERVA_CHECKIN')")
     @PutMapping("/{id}/checkin")
-    public Reserva checkIn(@PathVariable Long id) {
-        return reservaService.marcarEnCasa(id);
+    public Reserva checkIn(@PathVariable Long id, @RequestBody CheckInRequest request) {
+        return reservaService.realizarcheckIn(id, request.getHabitacionId());
     }
 
     @PreAuthorize("hasAuthority('RESERVA_CHECKOUT')")
