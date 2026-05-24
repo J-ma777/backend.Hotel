@@ -1,5 +1,7 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.dto.request.PlanTarifarioRequest;
+import com.hotelBackend.dto.response.PlanTarifarioResponse;
 import com.hotelBackend.model.PlanTarifario;
 import java.util.List;
 
@@ -13,10 +15,10 @@ public interface PlanTarifarioService {
     );
 
 
-    PlanTarifario crear(PlanTarifario plan);
+    PlanTarifarioResponse crear(PlanTarifarioRequest request);
 
-    PlanTarifario actualizar(Long id, PlanTarifario plan);
+    PlanTarifarioResponse actualizar(Long id, PlanTarifarioRequest request);
 
-    List<PlanTarifario> listarTodos();
+    List<PlanTarifarioResponse> listarTodos();
 
 }

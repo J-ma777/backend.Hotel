@@ -235,7 +235,6 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
-
     public Reserva realizarCheckout(Long id) {
 
         // 1. Validar que exista la reserva
@@ -260,7 +259,7 @@ public class ReservaServiceImpl implements ReservaService {
 
         // 4. Cambiar estado de habitación (flujo real de hotel)
         // Opción bastate cvr ya que pasa a LIMPIEZA cuando el cliente sale
-        habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+        habitacion.setEstado(EstadoHabitacion.SUCIA);
 
         // Si aún no manejas limpieza:
         // habitacion.setEstado(EstadoHabitacion.DISPONIBLE);

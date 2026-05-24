@@ -23,17 +23,15 @@ public class CustomUserDetails implements UserDetails {
 
         Set<GrantedAuthority> authorities = new HashSet<>();
 
-        // Permisos del rol
-        for (Permiso permiso : usuario.getRol().getPermisos()) {
-            authorities.add(
-                    new SimpleGrantedAuthority(permiso.getNombre())
-            );
+        if (usuario.getRol() != null && usuario.getRol().getPermisos() != null) {
+            for (Permiso permiso : usuario.getRol().getPermisos()) {
+                authorities.add(
+                        new SimpleGrantedAuthority(permiso.getNombre())
+                );
+            }
         }
 
-        // Rol (opcional, pero recomendable)
-        authorities.add(
-                new SimpleGrantedAuthority("ROLE_" + usuario.getRol().getNombre())
-        );
+        System.out.println("Authorities: " + authorities); // DEBUG PARA VERIFICAR QUE SE CARGAN LOS PERMISOS
 
         return authorities;
     }

@@ -1,9 +1,14 @@
 package com.hotelBackend.service.Implementaciones;
 
+import com.hotelBackend.dto.request.PlanTarifarioRequest;
+import com.hotelBackend.dto.response.PlanTarifarioResponse;
 import com.hotelBackend.model.PlanTarifario;
+import com.hotelBackend.model.TipoHabitacion;
 import com.hotelBackend.repository.PlanTarifarioRepository;
+import com.hotelBackend.repository.TipoHabitacionRepository;
 import com.hotelBackend.service.PlanTarifarioService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -12,13 +17,11 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class PlanTarifarioServiceImpl implements PlanTarifarioService {
 
     private final PlanTarifarioRepository planTarifarioRepository;
-
-    public PlanTarifarioServiceImpl(PlanTarifarioRepository planTarifarioRepository) {
-        this.planTarifarioRepository = planTarifarioRepository;
-    }
+    private final TipoHabitacionRepository tipoHabitacionRepository;
 
     // HU-20: Obtener tarifa por noche según tipo de día
     @Override
@@ -77,45 +80,99 @@ public class PlanTarifarioServiceImpl implements PlanTarifarioService {
         );
     }
 
+    private PlanTarifarioResponse mapToResponse(PlanTarifario entity) {
+
+        PlanTarifarioResponse res = new PlanTarifarioResponse();
+
+        res.setId(entity.getId());
+        res.setNombre(entity.getNombre());
+        res.setPrecioPorNoche(entity.getPrecioPorNoche());
+        res.setValidoDesde(entity.getValidoDesde());
+        res.setValidoHasta(entity.getValidoHasta());
+        res.setTipoHabitacionNombre(entity.getTipoHabitacion().getNombre());
+
+        boolean activo = !LocalDate.now().isBefore(entity.getValidoDesde()) &&
+                !LocalDate.now().isAfter(entity.getValidoHasta());
+
+        res.setActivo(activo);
+        return res;
+    }
+
     // HU-21: Administrar planes tarifarios (Admin)
 
     @Override
-    public PlanTarifario crear(PlanTarifario plan) {
-        validarFechas(plan);
-        return planTarifarioRepository.save(plan);
+    public PlanTarifarioResponse crear(PlanTarifarioRequest request) {
+
+        validarFechasRequest(request);
+        PlanTarifario entity = new PlanTarifario();
+
+        entity.setNombre(request.getNombre());
+        entity.setPrecioPorNoche(request.getPrecioPorNoche());
+        entity.setValidoDesde(request.getValidoDesde());
+        entity.setValidoHasta(request.getValidoHasta());
+        entity.setEsFeriado(request.getEsFeriado());
+        entity.setEsFinDeSemana(request.getEsFinDeSemana());
+
+        TipoHabitacion tipo = tipoHabitacionRepository
+                .findById(request.getTipoHabitacionId())
+                .orElseThrow();
+
+        entity.setTipoHabitacion(tipo);
+
+        PlanTarifario saved = planTarifarioRepository.save(entity);
+
+        return mapToResponse(saved);
+
+    }
+
+    private void validarFechasRequest(PlanTarifarioRequest request) {
+
+        if (request.getValidoDesde() == null || request.getValidoHasta() == null) {
+            throw new IllegalArgumentException("Las fechas son obligatorias");
+        }
+
+        if (request.getValidoHasta().isBefore(request.getValidoDesde())) {
+            throw new IllegalArgumentException(
+                    "La fecha validoHasta no puede ser anterior a validoDesde"
+            );
+        }
     }
 
     @Override
-    public PlanTarifario actualizar(Long id, PlanTarifario plan) {
+    public PlanTarifarioResponse actualizar(Long id, PlanTarifarioRequest request) {
+
+        validarFechasRequest(request); // validar fechas con el metodo ya mencionado
 
         PlanTarifario existente = planTarifarioRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalStateException("Plan tarifario no encontrado"));
 
-        validarFechas(plan);
+        validarFechasRequest(request);
 
-        existente.setNombre(plan.getNombre());
-        existente.setPrecioPorNoche(plan.getPrecioPorNoche());
-        existente.setEsFeriado(plan.getEsFeriado());
-        existente.setEsFinDeSemana(plan.getEsFinDeSemana());
-        existente.setValidoDesde(plan.getValidoDesde());
-        existente.setValidoHasta(plan.getValidoHasta());
-        existente.setTipoHabitacion(plan.getTipoHabitacion());
+        existente.setNombre(request.getNombre());
+        existente.setPrecioPorNoche(request.getPrecioPorNoche());
+        existente.setEsFeriado(request.getEsFeriado());
+        existente.setEsFinDeSemana(request.getEsFinDeSemana());
+        existente.setValidoDesde(request.getValidoDesde());
+        existente.setValidoHasta(request.getValidoHasta());
 
-        return planTarifarioRepository.save(existente);
+        TipoHabitacion tipo = tipoHabitacionRepository
+                .findById(request.getTipoHabitacionId())
+                .orElseThrow();
+
+        existente.setTipoHabitacion(tipo);
+
+        PlanTarifario actualizado = planTarifarioRepository.save(existente);
+
+        return mapToResponse(actualizado);
     }
 
     @Override
-    public List<PlanTarifario> listarTodos() {
-        return planTarifarioRepository.findAllByOrderByValidoDesdeDesc();
-    }
-
-    // Validaciones comunes
-    private void validarFechas(PlanTarifario plan) {
-        if (plan.getValidoHasta().isBefore(plan.getValidoDesde())) {
-            throw new IllegalArgumentException(
-                    "La fecha validoHasta no puede ser anterior a validoDesde"
-            );
-        }
+    public List<PlanTarifarioResponse> listarTodos() {
+        return planTarifarioRepository
+                .findAllByOrderByValidoDesdeDesc()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 }
