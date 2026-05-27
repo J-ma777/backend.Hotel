@@ -9,12 +9,15 @@ import com.hotelBackend.model.enums.EstadoTicket;
 import com.hotelBackend.repository.HabitacionRepository;
 import com.hotelBackend.repository.RegistroLimpiezaRepository;
 import com.hotelBackend.repository.TicketMantenimientoRepository;
+import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.TicketMantenimientoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -95,4 +98,29 @@ public class TicketMantenimientoServiceImpl implements TicketMantenimientoServic
         ticket.setEstado(EstadoTicket.EN_PROCESO);
         return ticketMantenimientoRepository.save(ticket);
     }
+
+    @Override
+    public TicketMantenimiento crearManual(Long habitacionId, String descripcion) {
+
+        Habitacion habitacion = habitacionRepository.findById(habitacionId)
+                .orElseThrow(() -> new RuntimeException("Habitación no encontrada"));
+
+        TicketMantenimiento ticket = new TicketMantenimiento();
+
+        ticket.setHabitacion(habitacion);
+        ticket.setDescripcion(descripcion);
+        ticket.setEstado(EstadoTicket.ABIERTO);
+        ticket.setReportadoEn(LocalDateTime.now());
+        ticket.setReportadoPor(AuthUtil.getCurrentUserId());
+
+        return ticketMantenimientoRepository.save(ticket);
+    }
+
+    @Override
+    public List<TicketMantenimiento> listarTickets() {
+        return ticketMantenimientoRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "reportadoEn")
+        );
+    }
+
 }

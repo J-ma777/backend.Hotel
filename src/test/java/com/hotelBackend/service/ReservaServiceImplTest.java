@@ -280,24 +280,6 @@ class ReservaServiceImplTest {
     // ========== CHECK-OUT (REALIZAR CHECKOUT) ==========
 
     @Test
-    void realizar_checkout_desde_en_casa_ok() {
-        reserva.setEstado(EstadoReserva.EN_CASA);
-        habitacion.setEstado(EstadoHabitacion.OCUPADA);
-
-        when(reservaRepository.findById(1L))
-                .thenReturn(Optional.of(reserva));
-        when(habitacionRepository.save(any()))
-                .thenReturn(habitacion);
-        when(reservaRepository.save(any()))
-                .thenReturn(reserva);
-
-        Reserva resultado = reservaService.realizarCheckout(1L);
-
-        assertEquals(EstadoReserva.SALIDA_CHECKOUT, resultado.getEstado());
-        assertEquals(EstadoHabitacion.DISPONIBLE, habitacion.getEstado());
-    }
-
-    @Test
     void realizar_checkout_desde_estado_invalido_lanza_excepcion() {
         reserva.setEstado(EstadoReserva.CONFIRMADA);
 

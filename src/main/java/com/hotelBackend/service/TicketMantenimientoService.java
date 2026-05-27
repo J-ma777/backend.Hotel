@@ -3,6 +3,8 @@ package com.hotelBackend.service;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.TicketMantenimiento;
 
+import java.util.List;
+
 public interface TicketMantenimientoService {
 
     TicketMantenimiento crearDesdeLimpieza(
@@ -16,5 +18,7 @@ public interface TicketMantenimientoService {
 
     TicketMantenimiento marcarEnProceso(Long id);
 
+    TicketMantenimiento crearManual(Long habitacionId, String descripcion);
 
+    List<TicketMantenimiento> listarTickets();
 }

@@ -1,5 +1,6 @@
 package com.hotelBackend.controller;
 
+import com.hotelBackend.dto.request.CrearTicketRequest;
 import com.hotelBackend.model.TicketMantenimiento;
 import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.TicketMantenimientoService;
@@ -7,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/mantenimiento")
@@ -16,7 +19,7 @@ public class TicketMantenimientoController {
     private final TicketMantenimientoService ticketMantenimientoService;
 
     @PutMapping("/{ticketId}/resolver")
-    @PreAuthorize("hasAuthority('RESOLVER_TICKET')")
+    @PreAuthorize("hasAuthority('MANTENIMIENTO_GESTIONAR')")
     public ResponseEntity<TicketMantenimiento> resolverTicket(
             @PathVariable Long ticketId
     ) {
@@ -30,5 +33,22 @@ public class TicketMantenimientoController {
     @PreAuthorize("hasAuthority('MANTENIMIENTO_GESTIONAR')")
     public TicketMantenimiento marcarEnProceso(@PathVariable Long id) {
         return ticketMantenimientoService.marcarEnProceso(id);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('MANTENIMIENTO_VER')")
+    public ResponseEntity<List<TicketMantenimiento>> listarTickets() {
+        List<TicketMantenimiento> tickets = ticketMantenimientoService.listarTickets();
+        return ResponseEntity.ok(tickets);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAuthority('MANTENIMIENTO_CREAR')")
+    public ResponseEntity<TicketMantenimiento> crearTicket(@RequestBody CrearTicketRequest request) {
+
+        TicketMantenimiento ticket = ticketMantenimientoService
+                .crearManual(request.getHabitacionId(), request.getDescripcion());
+
+        return ResponseEntity.ok(ticket);
     }
 }
