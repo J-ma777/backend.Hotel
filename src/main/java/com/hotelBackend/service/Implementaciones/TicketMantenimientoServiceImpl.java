@@ -68,12 +68,14 @@ public class TicketMantenimientoServiceImpl implements TicketMantenimientoServic
             RegistroLimpieza registro = new RegistroLimpieza();
             registro.setHabitacion(habitacion);
             registro.setEstadoAnterior(EstadoHabitacion.FUERA_DE_SERVICIO);
-            registro.setEstadoNuevo(EstadoHabitacion.DISPONIBLE);
+            registro.setEstadoNuevo(EstadoHabitacion.SUCIA); // CAMBIO CLAVE: Ya que de repente usaron materiales que contenian polvo, entonces tienen que proceder a limpiar
+                                                             // habitación antes de volver a ponerla en servicio, por eso el estado nuevo es SUCIA y no DISPONIBLE
             registro.setNotas("Liberación automática por ticket resuelto");
             registro.setCambiadoEn(LocalDateTime.now());
             registro.setCambiadoPor(usuarioId);
 
-            habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+            // CAMBIO CLAVE
+            habitacion.setEstado(EstadoHabitacion.SUCIA);
 
             habitacionRepository.save(habitacion);
             registroLimpiezaRepository.save(registro);
@@ -86,16 +88,26 @@ public class TicketMantenimientoServiceImpl implements TicketMantenimientoServic
     public TicketMantenimiento marcarEnProceso(Long id) {
 
         TicketMantenimiento ticket = ticketMantenimientoRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalStateException("Ticket de mantenimiento no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Ticket no encontrado"));
 
+        // validar estado actual
         if (ticket.getEstado() != EstadoTicket.ABIERTO) {
-            throw new IllegalStateException(
-                    "Solo un ticket ABIERTO puede pasar a EN_PROCESO"
-            );
+            throw new RuntimeException("Solo tickets en estado ABIERTO pueden pasar a EN_PROCESO");
         }
 
+        // cambiar estado del ticket
         ticket.setEstado(EstadoTicket.EN_PROCESO);
+
+        //  AQUÍ ESTÁ LA CLAVE
+        // obtener habitación
+        Habitacion habitacion = ticket.getHabitacion();
+
+        // cambiar habitación a fuera de servicio
+        habitacion.setEstado(EstadoHabitacion.FUERA_DE_SERVICIO);
+
+        // guardar habitación
+        habitacionRepository.save(habitacion);
+
         return ticketMantenimientoRepository.save(ticket);
     }
 

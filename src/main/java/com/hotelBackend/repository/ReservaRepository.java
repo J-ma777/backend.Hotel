@@ -31,4 +31,10 @@ AND (
             EstadoReserva estado,
             LocalDate fecha
     );
+
+    boolean existsByHabitacionIdAndEstadoIn(
+            Long habitacionId,
+            List<EstadoReserva> estados
+    );
+
 }

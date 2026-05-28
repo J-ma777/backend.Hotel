@@ -4,6 +4,7 @@ import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.service.HabitacionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,6 +58,17 @@ public class HabitacionController {
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id) {
         habitacionService.eliminar(id);
+    }
+
+    @GetMapping("/disponibles-mantenimiento")
+    @PreAuthorize("hasAuthority('MANTENIMIENTO_CREAR')")
+    public ResponseEntity<List<HabitacionResponse>> obtenerParaMantenimiento() {
+        List<HabitacionResponse> response = habitacionService.obtenerParaMantenimiento()
+                .stream()
+                .map(HabitacionResponse::new)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 
 }

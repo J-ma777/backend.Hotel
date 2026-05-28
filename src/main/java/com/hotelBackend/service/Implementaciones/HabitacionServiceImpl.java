@@ -2,6 +2,8 @@ package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
+import com.hotelBackend.model.enums.EstadoHabitacion;
+import com.hotelBackend.model.enums.EstadoReserva;
 import com.hotelBackend.repository.HabitacionRepository;
 import com.hotelBackend.repository.ReservaRepository;
 import com.hotelBackend.service.HabitacionService;
@@ -39,34 +41,43 @@ public class HabitacionServiceImpl implements HabitacionService {
         return habitacionRepository.save(actual);
     }
 
-
+    // LISTAR (CORREGIDO - ahora usa ocupación real)
     @Override
     public List<HabitacionResponse> listar() {
         return habitacionRepository.findAll()
                 .stream()
-                .map(h -> new HabitacionResponse(
-                        h.getId(),
-                        h.getNumero(),
-                        h.getEstado().name(),
-                        h.getPiso(),
-                        h.getTipoHabitacion().getNombre()
-                ))
+                .map(h -> {
+                    boolean ocupada = reservaRepository.existsByHabitacionIdAndEstadoIn(
+                            h.getId(),
+                            List.of(
+                                    EstadoReserva.CONFIRMADA,
+                                    EstadoReserva.EN_CASA
+                            )
+                    );
+
+                    return new HabitacionResponse(h, ocupada);
+                })
                 .toList();
     }
 
+    // BUSCAR DISPONIBLES (CORREGIDO)
     @Override
     public List<HabitacionResponse> buscarDisponibles(LocalDate inicio, LocalDate fin) {
 
-        List<Habitacion> disponibles = habitacionRepository.findDisponibles(inicio, fin); // habitacionRepository.findDisponibles: Método clave
+        List<Habitacion> disponibles = habitacionRepository.findDisponibles(inicio, fin);
 
         return disponibles.stream()
-                .map(h -> new HabitacionResponse(
-                        h.getId(),
-                        h.getNumero(),
-                        h.getEstado().name(),
-                        h.getPiso(),
-                        h.getTipoHabitacion().getNombre()
-                ))
+                .map(h -> {
+                    boolean ocupada = reservaRepository.existsByHabitacionIdAndEstadoIn(
+                            h.getId(),
+                            List.of(
+                                    EstadoReserva.CONFIRMADA,
+                                    EstadoReserva.EN_CASA
+                            )
+                    );
+
+                    return new HabitacionResponse(h, ocupada);
+                })
                 .toList();
     }
 
@@ -81,4 +92,29 @@ public class HabitacionServiceImpl implements HabitacionService {
         habitacionRepository.deleteById(id);
     }
 
+    @Override
+    public List<Habitacion> obtenerParaMantenimiento() {
+
+        return habitacionRepository.findAll()
+                .stream()
+                .filter(h -> {
+
+                    // excluir fuera de servicio
+                    if (h.getEstado() == EstadoHabitacion.FUERA_DE_SERVICIO) {
+                        return false;
+                    }
+
+                    // excluir ocupadas (clave)
+                    boolean ocupada = reservaRepository.existsByHabitacionIdAndEstadoIn(
+                            h.getId(),
+                            List.of(
+                                    EstadoReserva.CONFIRMADA,
+                                    EstadoReserva.EN_CASA
+                            )
+                    );
+
+                    return !ocupada;
+                })
+                .toList();
+    }
 }

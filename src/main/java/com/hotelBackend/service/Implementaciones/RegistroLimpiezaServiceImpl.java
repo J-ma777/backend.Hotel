@@ -3,9 +3,11 @@ package com.hotelBackend.service.Implementaciones;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.RegistroLimpieza;
 import com.hotelBackend.model.enums.EstadoHabitacion;
+import com.hotelBackend.model.enums.EstadoReserva;
 import com.hotelBackend.model.enums.EstadoTicket;
 import com.hotelBackend.repository.HabitacionRepository;
 import com.hotelBackend.repository.RegistroLimpiezaRepository;
+import com.hotelBackend.repository.ReservaRepository;
 import com.hotelBackend.repository.TicketMantenimientoRepository;
 import com.hotelBackend.service.RegistroLimpiezaService;
 import com.hotelBackend.service.TicketMantenimientoService;
@@ -26,6 +28,7 @@ public class RegistroLimpiezaServiceImpl implements RegistroLimpiezaService {
     private final HabitacionRepository habitacionRepository;
     private final TicketMantenimientoService ticketMantenimientoService;
     private final TicketMantenimientoRepository ticketMantenimientoRepository;
+    private final ReservaRepository reservaRepository;
 
     @Override
     public RegistroLimpieza registrarCambioEstado(
@@ -36,6 +39,22 @@ public class RegistroLimpiezaServiceImpl implements RegistroLimpiezaService {
     ) {
         Habitacion habitacion = habitacionRepository.findById(habitacionId)
                 .orElseThrow(() -> new RuntimeException("Habitación no encontrada"));
+
+
+        // AQUÍ VA LA VALIDACIÓN DE QUE LA HABITACIÓN NO ESTÉ OCUPADA ANTES DE PERMITIR CAMBIOS DE LIMPIEZA
+        boolean ocupada = reservaRepository.existsByHabitacionIdAndEstadoIn(
+                habitacion.getId(),
+                List.of(
+                        EstadoReserva.CONFIRMADA,
+                        EstadoReserva.EN_CASA
+                )
+        );
+
+        if (ocupada) {
+            throw new IllegalStateException(
+                    "No se puede modificar limpieza de una habitación ocupada"
+            );
+        }
 
         EstadoHabitacion estadoAnterior = habitacion.getEstado();
 
