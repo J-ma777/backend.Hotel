@@ -58,7 +58,7 @@ public class TicketMantenimientoServiceImplTest {
                 ticketMantenimientoService.resolverTicket(100L, 10L);
 
         assertEquals(EstadoTicket.RESUELTO, resultado.getEstado());
-        assertEquals(EstadoHabitacion.DISPONIBLE, habitacion.getEstado());
+        assertEquals(EstadoHabitacion.SUCIA, habitacion.getEstado());
 
         verify(registroLimpiezaRepository).save(any(RegistroLimpieza.class));
         verify(habitacionRepository).save(habitacion);
@@ -108,5 +108,46 @@ public class TicketMantenimientoServiceImplTest {
         verify(ticketMantenimientoRepository, never()).save(any());
     }
 
+    @Test
+    void resolver_ticket_no_existe_lanza_excepcion() {
+
+        when(ticketMantenimientoRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> ticketMantenimientoService.resolverTicket(999L, 1L)
+        );
+
+        assertTrue(ex.getMessage().toLowerCase().contains("ticket"));
+        verify(ticketMantenimientoRepository, never()).save(any());
+        verify(habitacionRepository, never()).save(any());
+        verify(registroLimpiezaRepository, never()).save(any());
+    }
+
+    @Test
+    void resolver_ticket_fuera_de_servicio_persiste_ticket_habitacion_y_registro() {
+
+        Habitacion habitacion = new Habitacion();
+        habitacion.setId(1L);
+        habitacion.setEstado(EstadoHabitacion.FUERA_DE_SERVICIO);
+
+        TicketMantenimiento ticket = new TicketMantenimiento();
+        ticket.setId(200L);
+        ticket.setEstado(EstadoTicket.ABIERTO);
+        ticket.setHabitacion(habitacion);
+
+        when(ticketMantenimientoRepository.findById(200L))
+                .thenReturn(Optional.of(ticket));
+
+        when(ticketMantenimientoRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        ticketMantenimientoService.resolverTicket(200L, 10L);
+
+        verify(habitacionRepository, times(1)).save(habitacion);
+        verify(registroLimpiezaRepository, times(1)).save(any(RegistroLimpieza.class));
+        verify(ticketMantenimientoRepository, times(1)).save(ticket);
+    }
 
 }

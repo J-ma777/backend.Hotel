@@ -27,12 +27,15 @@ public class ArticuloInventario {
     @Column(nullable = false, length = 30)
     private String unidad;              // kg, litros, unidades, rollos
 
-    @Column(name = "stock_actual", nullable = false)
-    private Double stockActual;         // cantidad disponible actualmente
+    @Version
+    private Long version; // Control de concurrencia optimista
 
-    @Column(name = "stock_minimo", nullable = false)
-    private Double stockMinimo;         // punto de alerta para reposición
+    @Column(name = "stock_actual", nullable = false, precision = 10, scale = 2)
+    private BigDecimal stockActual = BigDecimal.ZERO;         // cantidad disponible actualmente
+
+    @Column(name = "stock_minimo", nullable = false, precision = 10, scale = 2)
+    private BigDecimal stockMinimo = BigDecimal.ZERO;         // punto de alerta para reposición
 
     @Column(name = "costo_unitario", nullable = false, precision = 10, scale = 2)
-    private BigDecimal costoUnitario;
+    private BigDecimal costoUnitario = BigDecimal.ZERO;
 }

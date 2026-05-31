@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -26,8 +27,8 @@ public class MovimientoInventario {
     @Column(nullable = false, length = 10)
     private TipoMovimiento tipo;        // ENTRADA sube stock, SALIDA lo baja
 
-    @Column(nullable = false)
-    private Double cantidad;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal cantidad;
 
     @Column(length = 255)
     private String motivo;              // "Compra a proveedor", "Consumo habitación 201"

@@ -4,7 +4,9 @@ import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.TipoHabitacion;
 import com.hotelBackend.model.enums.EstadoHabitacion;
+import com.hotelBackend.model.enums.EstadoReserva;
 import com.hotelBackend.repository.HabitacionRepository;
+import com.hotelBackend.repository.ReservaRepository;
 import com.hotelBackend.service.Implementaciones.HabitacionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +29,12 @@ class HabitacionServiceImplTest {
 
     @Mock
     private HabitacionRepository habitacionRepository;
+
+    @Mock
+    private ReservaRepository reservaRepository;
+
+    @Mock
+    private PlanTarifarioService planTarifarioService;
 
     @InjectMocks
     private HabitacionServiceImpl habitacionService;
@@ -69,7 +78,15 @@ class HabitacionServiceImplTest {
     @Test
     @DisplayName("Test 2 - listar: debe retornar la lista completa de habitaciones")
     void listar_debeRetornarTodasLasHabitaciones() {
-        // Arrange (organizar)
+
+        // Arrange
+        Habitacion habitacion = new Habitacion();
+        habitacion.setId(1L);
+        habitacion.setNumero("101");
+        habitacion.setPiso(1);
+        habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+        habitacion.setTipoHabitacion(tipoHabitacion);
+
         Habitacion habitacion2 = new Habitacion();
         habitacion2.setId(2L);
         habitacion2.setNumero("202");
@@ -77,17 +94,34 @@ class HabitacionServiceImplTest {
         habitacion2.setEstado(EstadoHabitacion.OCUPADA);
         habitacion2.setTipoHabitacion(tipoHabitacion);
 
-        when(habitacionRepository.findAll()).thenReturn(List.of(habitacion, habitacion2));
+        when(habitacionRepository.findAll())
+                .thenReturn(List.of(habitacion, habitacion2));
 
-        // Act (actuar)
+        // por defecto, no está ocupada
+        when(reservaRepository.existsByHabitacionIdAndEstadoIn(eq(1L), anyList()))
+                .thenReturn(false);
+        // simulamos ocupación real para la 2da
+        when(reservaRepository.existsByHabitacionIdAndEstadoIn(eq(2L), anyList()))
+                .thenReturn(true);
+
+        // Act
         List<HabitacionResponse> resultado = habitacionService.listar();
 
-        // Assert (afirmar)
+        // Assert
         assertThat(resultado).isNotNull();
         assertThat(resultado).hasSize(2);
         assertThat(resultado.get(0).getNumero()).isEqualTo("101");
+        assertThat(resultado.get(0).getEstado()).isEqualTo(EstadoHabitacion.DISPONIBLE.name());
+
         assertThat(resultado.get(1).getNumero()).isEqualTo("202");
+        // aunque el entity tenga OCUPADA, acá validamos que el servicio calcula ocupación usando reservas
+        assertThat(resultado.get(1).getEstado()).isEqualTo(EstadoHabitacion.OCUPADA.name());
+
         verify(habitacionRepository, times(1)).findAll();
+        verify(reservaRepository, times(1))
+                .existsByHabitacionIdAndEstadoIn(eq(1L), eq(List.of(EstadoReserva.CONFIRMADA, EstadoReserva.EN_CASA)));
+        verify(reservaRepository, times(1))
+                .existsByHabitacionIdAndEstadoIn(eq(2L), eq(List.of(EstadoReserva.CONFIRMADA, EstadoReserva.EN_CASA)));
     }
 
     // TEST 3: obtenerPorId() retorna la habitación cuando el ID existe
