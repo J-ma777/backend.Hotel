@@ -13,6 +13,7 @@ public class PlanTarifarioResponse {
     private BigDecimal precioPorNoche;
     private LocalDate validoDesde;
     private LocalDate validoHasta;
+    private Long tipoHabitacionId;
     private String tipoHabitacionNombre;
     private Boolean activo;
 }

@@ -56,4 +56,8 @@ public class Reserva {
     // no cambiaba de pendiente a confirmada, y no se asignaba la habitacion, por lo que al ser null, no se asignaba la habitacion, y no se cambiaba el estado a confirmada.
     private Habitacion habitacion;
 
+    @ManyToOne
+    @JoinColumn(name = "plan_tarifario_id")
+    private PlanTarifario planTarifario;
+
 }

@@ -21,4 +21,6 @@ public interface PlanTarifarioService {
 
     List<PlanTarifarioResponse> listarTodos();
 
+    List<PlanTarifarioResponse> listarPorTipo(Long tipoHabitacionId);
+
 }

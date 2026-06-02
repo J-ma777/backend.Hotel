@@ -26,4 +26,6 @@ public interface PlanTarifarioRepository extends JpaRepository<PlanTarifario, Lo
     );
 
     List<PlanTarifario> findAllByOrderByValidoDesdeDesc();
+
+    List<PlanTarifario> findByTipoHabitacionId(Long tipoHabitacionId);
 }

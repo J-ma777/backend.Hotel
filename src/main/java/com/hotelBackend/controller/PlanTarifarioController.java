@@ -38,4 +38,8 @@ public class PlanTarifarioController {
         return service.listarTodos();
     }
 
+    @GetMapping("/tipo/{tipoHabitacionId}")
+    public List<PlanTarifarioResponse> listarPorTipo(@PathVariable Long tipoHabitacionId) {
+        return service.listarPorTipo(tipoHabitacionId);
+    }
 }

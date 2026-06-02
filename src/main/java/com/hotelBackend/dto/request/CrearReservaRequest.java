@@ -29,7 +29,9 @@ public class CrearReservaRequest {
     @NotNull
     private Long tipoHabitacionId;
 
-    // AGREGA ESTO (no borrar nada)
+    @NotNull
+    private Long planTarifarioId;
+
     public LocalDate getFechaEntrada() {
         return fechaEntrada;
     }
@@ -77,4 +79,13 @@ public class CrearReservaRequest {
     public void setTipoHabitacionId(Long tipoHabitacionId) {
         this.tipoHabitacionId = tipoHabitacionId;
     }
+
+    public Long getPlanTarifarioId() {
+        return planTarifarioId;
+    }
+
+    public void setPlanTarifarioId(Long planTarifarioId) {
+        this.planTarifarioId = planTarifarioId;
+    }
+
 }

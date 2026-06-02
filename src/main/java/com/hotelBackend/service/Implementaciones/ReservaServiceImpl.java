@@ -5,11 +5,13 @@ import com.hotelBackend.exception.EstadoReservaInvalidoException;
 import com.hotelBackend.exception.HabitacionNoDisponibleException;
 import com.hotelBackend.exception.ReservaNoEncontradaException;
 import com.hotelBackend.model.Habitacion;
+import com.hotelBackend.model.PlanTarifario;
 import com.hotelBackend.model.Reserva;
 import com.hotelBackend.model.enums.EstadoHabitacion;
 import com.hotelBackend.model.enums.EstadoReserva;
 import com.hotelBackend.model.enums.TipoTransaccion;
 import com.hotelBackend.repository.HabitacionRepository;
+import com.hotelBackend.repository.PlanTarifarioRepository;
 import com.hotelBackend.repository.ReservaRepository;
 import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.PlanTarifarioService;
@@ -19,6 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.temporal.ChronoUnit;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,6 +38,7 @@ public class ReservaServiceImpl implements ReservaService {
     private final ReservaRepository reservaRepository;
     private final HabitacionRepository habitacionRepository;
     private final PlanTarifarioService planTarifarioService;
+    private final PlanTarifarioRepository planTarifarioRepository;
     private final TransaccionFolioService transaccionFolioService;
 
     // Metodo para crear una nueva reserva
@@ -60,6 +66,13 @@ public class ReservaServiceImpl implements ReservaService {
                 .orElseThrow(() -> new RuntimeException("Tipo de habitación no encontrado"));
 
         reserva.setTipoHabitacion(tipoHabitacion);*/
+
+        // PlanTarifario se resuelve aquí (repositorio)
+        PlanTarifario plan = planTarifarioRepository.findById(request.getPlanTarifarioId())
+                .orElseThrow(() -> new RuntimeException("Plan tarifario no encontrado"));
+
+        reserva.setPlanTarifario(plan);
+
 
         return reservaRepository.save(reserva);
     }
@@ -230,6 +243,22 @@ public class ReservaServiceImpl implements ReservaService {
         // Cambiar estado
         reserva.setEstado(EstadoReserva.EN_CASA);
 
+        // Calcular precio por noches que esta reservada
+        long noches = calcularNoches(reserva);
+
+        BigDecimal precio = reserva.getPlanTarifario().getPrecioPorNoche();
+
+        Long userId = AuthUtil.getCurrentUserId();
+
+        transaccionFolioService.registrarTransaccion(
+                reserva.getId(),
+                TipoTransaccion.ALOJAMIENTO,
+                "Estadía " + noches + " noches",
+                precio,
+                (int) noches,
+                userId
+        );
+
         return reservaRepository.save(reserva);
 
     }
@@ -315,4 +344,12 @@ public class ReservaServiceImpl implements ReservaService {
     public void procesarNoPresentadas(){
         // lOGICA FUTURA
     }
+
+    private long calcularNoches(Reserva reserva){
+        return ChronoUnit.DAYS.between(
+                reserva.getFechaEntrada(),
+                reserva.getFechaSalida()
+        );
+    }
+
 }

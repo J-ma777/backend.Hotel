@@ -89,6 +89,8 @@ public class PlanTarifarioServiceImpl implements PlanTarifarioService {
         res.setPrecioPorNoche(entity.getPrecioPorNoche());
         res.setValidoDesde(entity.getValidoDesde());
         res.setValidoHasta(entity.getValidoHasta());
+        // Para filtrar tipos de habitaciones en reservas de acuerdo a la categoria de la habitacion
+        res.setTipoHabitacionId(entity.getTipoHabitacion().getId());
         res.setTipoHabitacionNombre(entity.getTipoHabitacion().getNombre());
 
         boolean activo = !LocalDate.now().isBefore(entity.getValidoDesde()) &&
@@ -175,4 +177,13 @@ public class PlanTarifarioServiceImpl implements PlanTarifarioService {
                 .map(this::mapToResponse)
                 .toList();
     }
+
+    @Override
+    public List<PlanTarifarioResponse> listarPorTipo(Long tipoHabitacionId) {
+        return planTarifarioRepository.findByTipoHabitacionId(tipoHabitacionId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
 }
