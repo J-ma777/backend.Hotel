@@ -1,9 +1,14 @@
 package com.hotelBackend.controller;
 
+import com.hotelBackend.dto.common.MovimientoResponse;
+import com.hotelBackend.dto.request.AjusteStockRequest;
+import com.hotelBackend.dto.request.MovimientoRequest;
 import com.hotelBackend.model.ArticuloInventario;
 import com.hotelBackend.model.MovimientoInventario;
 import com.hotelBackend.service.MovimientoInventarioService;
 import com.hotelBackend.service.ArticuloInventarioService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,50 +16,85 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/inventario")
+@RequiredArgsConstructor
 public class MovimientoInventarioController {
 
     private final MovimientoInventarioService movimientoService;
     private final ArticuloInventarioService articuloService;
 
-    public MovimientoInventarioController(
-            MovimientoInventarioService movimientoService,
-            ArticuloInventarioService articuloService
+    @PostMapping("/entrada")
+    @PreAuthorize("hasAuthority('INVENTARIO_GESTIONAR')")
+    public ResponseEntity<MovimientoResponse> registrarEntrada(
+            @RequestBody MovimientoRequest request
     ) {
-        this.movimientoService = movimientoService;
-        this.articuloService = articuloService;
+        MovimientoInventario mov = movimientoService.registrarEntrada(
+                request.articuloId(),
+                request.cantidad(),
+                request.motivo()
+        );
+
+        return ResponseEntity.ok(mapToResponse(mov));
     }
 
-    @PostMapping("/{articuloId}/entrada")
+    @PostMapping("/salida")
     @PreAuthorize("hasAuthority('INVENTARIO_GESTIONAR')")
-    public MovimientoInventario registrarEntrada(
-            @PathVariable Long articuloId,
-            @RequestParam Double cantidad,
-            @RequestParam(required = false) String motivo
+    public ResponseEntity<MovimientoResponse> registrarSalida(
+            @RequestBody MovimientoRequest request
     ) {
-        return movimientoService.registrarEntrada(articuloId, cantidad, motivo);
+        MovimientoInventario mov = movimientoService.registrarSalida(
+                request.articuloId(),
+                request.cantidad(),
+                request.motivo()
+        );
+
+        return ResponseEntity.ok(mapToResponse(mov));
     }
 
-    @PostMapping("/{articuloId}/salida")
+    @PostMapping("/ajuste")
     @PreAuthorize("hasAuthority('INVENTARIO_GESTIONAR')")
-    public MovimientoInventario registrarSalida(
-            @PathVariable Long articuloId,
-            @RequestParam Double cantidad,
-            @RequestParam(required = false) String motivo
+    public ResponseEntity<MovimientoResponse> ajustar(
+            @RequestBody AjusteStockRequest request
     ) {
-        return movimientoService.registrarSalida(articuloId, cantidad, motivo);
+        MovimientoInventario mov = movimientoService.ajustarStock(
+                request.articuloId(),
+                request.nuevoStock(),
+                request.motivo()
+        );
+
+        return ResponseEntity.ok(mapToResponse(mov));
     }
 
     @GetMapping("/articulo/{articuloId}")
     @PreAuthorize("hasAuthority('INVENTARIO_VER')")
-    public List<MovimientoInventario> listarMovimientos(@PathVariable Long articuloId) {
-        return movimientoService.listarPorArticulo(articuloId);
+    public ResponseEntity<List<MovimientoResponse>> listarMovimientos(
+            @PathVariable Long articuloId
+    ) {
+        List<MovimientoResponse> response = movimientoService
+                .listarPorArticulo(articuloId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 
-    // Alertas de stcck mínimo: Devuelve los artículos cuyo
-    // stock actual es menor o igual al stock mínimo, indicando que necesitan reposición
     @GetMapping("/alertas/stock-minimo")
     @PreAuthorize("hasAuthority('INVENTARIO_VER')")
-    public List<ArticuloInventario> alertasStockMinimo() {
-        return articuloService.obtenerArticulosConStockMinimo();
+    public ResponseEntity<List<ArticuloInventario>> alertasStockMinimo() {
+        return ResponseEntity.ok(
+                articuloService.obtenerArticulosConStockMinimo()
+        );
+    }
+
+    private MovimientoResponse mapToResponse(MovimientoInventario m) {
+        return new MovimientoResponse(
+                m.getId(),
+                m.getTipo().name(),
+                m.getCantidad(),
+                m.getMotivo(),
+                m.getFechaMovimiento(),
+                m.getArticulo().getId(),
+                m.getArticulo().getNombre()
+        );
     }
 }

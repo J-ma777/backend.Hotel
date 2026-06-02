@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,13 +31,13 @@ class ArticuloInventarioServiceTest {
 
         ArticuloInventario a1 = new ArticuloInventario();
         a1.setNombre("Toalla");
-        a1.setStockActual(0.0);
-        a1.setStockMinimo(10.0);
+        a1.setStockActual(BigDecimal.valueOf(0.0));
+        a1.setStockMinimo(BigDecimal.valueOf(10.0));
 
         ArticuloInventario a2 = new ArticuloInventario();
         a2.setNombre("Jabón");
-        a2.setStockActual(5.0);
-        a2.setStockMinimo(10.0);
+        a2.setStockActual(BigDecimal.valueOf(5.0));
+        a2.setStockMinimo(BigDecimal.valueOf(10.0));
 
         when(repository.findConStockBajo())
                 .thenReturn(List.of(a1, a2));

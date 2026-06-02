@@ -7,7 +7,9 @@ import com.hotelBackend.model.enums.EstadoTicket;
 import com.hotelBackend.repository.HabitacionRepository;
 import com.hotelBackend.repository.RegistroLimpiezaRepository;
 import com.hotelBackend.repository.TicketMantenimientoRepository;
+import com.hotelBackend.repository.ReservaRepository;
 import com.hotelBackend.service.Implementaciones.RegistroLimpiezaServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,10 +20,11 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RegistroLimpiezaServiceImplTest {
+class RegistroLimpiezaServiceImplTest {
 
     @Mock
     private RegistroLimpiezaRepository registroLimpiezaRepository;
@@ -35,86 +38,113 @@ public class RegistroLimpiezaServiceImplTest {
     @Mock
     private TicketMantenimientoRepository ticketMantenimientoRepository;
 
-    @InjectMocks
-    private RegistroLimpiezaServiceImpl registroLimpiezaService;
+    @Mock
+    private ReservaRepository reservaRepository;
 
-    @Test
-    void inspeccionada_sin_incidencias_pasa_a_disponible() {
-        Habitacion habitacion = new Habitacion();
+    @InjectMocks
+    private RegistroLimpiezaServiceImpl service;
+
+    private Habitacion habitacion;
+
+    @BeforeEach
+    void setup() {
+        habitacion = new Habitacion();
         habitacion.setId(1L);
         habitacion.setEstado(EstadoHabitacion.LIMPIANDO);
+    }
+
+    @Test
+    void inspeccionada_sinIncidencias_debePasarADisponible() {
 
         when(habitacionRepository.findById(1L))
                 .thenReturn(Optional.of(habitacion));
+
+        when(reservaRepository.existsByHabitacionIdAndEstadoIn(eq(1L), anyList()))
+                .thenReturn(false);
 
         when(ticketMantenimientoRepository
                 .existsByHabitacionIdAndEstado(1L, EstadoTicket.ABIERTO))
                 .thenReturn(false);
 
         when(registroLimpiezaRepository.save(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(i -> i.getArgument(0));
 
-        RegistroLimpieza registro = registroLimpiezaService.registrarCambioEstado(
+        RegistroLimpieza registro = service.registrarCambioEstado(
                 1L,
                 EstadoHabitacion.INSPECCIONADA,
                 null,
                 10L
         );
 
+        // Estado final
         assertEquals(EstadoHabitacion.DISPONIBLE, habitacion.getEstado());
+
+        // Registro
+        assertNotNull(registro);
         assertEquals(EstadoHabitacion.LIMPIANDO, registro.getEstadoAnterior());
         assertEquals(EstadoHabitacion.INSPECCIONADA, registro.getEstadoNuevo());
+        assertEquals(habitacion, registro.getHabitacion());
 
+        // Persistencia
+        verify(habitacionRepository).save(habitacion);
+        verify(registroLimpiezaRepository).save(any());
+
+        // Sin ticket
         verify(ticketMantenimientoService, never())
                 .crearDesdeLimpieza(any(), any(), any());
     }
 
     @Test
-    void inspeccionada_con_notas_crea_ticket_y_no_pasa_a_disponible() {
-        Habitacion habitacion = new Habitacion();
-        habitacion.setId(1L);
-        habitacion.setEstado(EstadoHabitacion.LIMPIANDO);
+    void inspeccionada_conNotas_debeCrearTicket_yMantenerEstado() {
 
         when(habitacionRepository.findById(1L))
                 .thenReturn(Optional.of(habitacion));
+
+        when(reservaRepository.existsByHabitacionIdAndEstadoIn(eq(1L), anyList()))
+                .thenReturn(false);
 
         when(ticketMantenimientoRepository
                 .existsByHabitacionIdAndEstado(1L, EstadoTicket.ABIERTO))
                 .thenReturn(true);
 
         when(registroLimpiezaRepository.save(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(i -> i.getArgument(0));
 
-        registroLimpiezaService.registrarCambioEstado(
+        service.registrarCambioEstado(
                 1L,
                 EstadoHabitacion.INSPECCIONADA,
                 "fuga en lavamanos",
                 10L
         );
 
+        // No pasa a disponible
         assertEquals(EstadoHabitacion.INSPECCIONADA, habitacion.getEstado());
 
+        // Se crea ticket
         verify(ticketMantenimientoService).crearDesdeLimpieza(
                 habitacion,
                 "fuga en lavamanos",
                 10L
         );
+
+        verify(habitacionRepository).save(habitacion);
+        verify(registroLimpiezaRepository).save(any());
     }
 
     @Test
-    void fuera_de_servicio_genera_ticket() {
-        Habitacion habitacion = new Habitacion();
-        habitacion.setId(2L);
-        habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+    void fueraDeServicio_debeActualizarEstado_yCrearTicket() {
 
-        when(habitacionRepository.findById(2L))
+        when(habitacionRepository.findById(1L))
                 .thenReturn(Optional.of(habitacion));
 
-        when(registroLimpiezaRepository.save(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(reservaRepository.existsByHabitacionIdAndEstadoIn(eq(1L), anyList()))
+                .thenReturn(false);
 
-        registroLimpiezaService.registrarCambioEstado(
-                2L,
+        when(registroLimpiezaRepository.save(any()))
+                .thenAnswer(i -> i.getArgument(0));
+
+        service.registrarCambioEstado(
+                1L,
                 EstadoHabitacion.FUERA_DE_SERVICIO,
                 "aire acondicionado dañado",
                 20L
@@ -127,20 +157,25 @@ public class RegistroLimpiezaServiceImplTest {
                 "aire acondicionado dañado",
                 20L
         );
+
+        verify(habitacionRepository).save(habitacion);
+        verify(registroLimpiezaRepository).save(any());
     }
 
     @Test
-    void mismo_estado_lanza_excepcion() {
-        Habitacion habitacion = new Habitacion();
-        habitacion.setId(3L);
+    void mismoEstado_debeLanzarExcepcion() {
+
         habitacion.setEstado(EstadoHabitacion.SUCIA);
 
-        when(habitacionRepository.findById(3L))
+        when(habitacionRepository.findById(1L))
                 .thenReturn(Optional.of(habitacion));
 
+        when(reservaRepository.existsByHabitacionIdAndEstadoIn(eq(1L), anyList()))
+                .thenReturn(false);
+
         assertThrows(IllegalStateException.class, () ->
-                registroLimpiezaService.registrarCambioEstado(
-                        3L,
+                service.registrarCambioEstado(
+                        1L,
                         EstadoHabitacion.SUCIA,
                         null,
                         1L
@@ -148,5 +183,6 @@ public class RegistroLimpiezaServiceImplTest {
         );
 
         verifyNoInteractions(registroLimpiezaRepository);
+        verify(habitacionRepository, never()).save(any());
     }
 }

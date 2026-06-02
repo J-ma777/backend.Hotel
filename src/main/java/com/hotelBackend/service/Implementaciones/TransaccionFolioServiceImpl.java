@@ -86,24 +86,21 @@ public class TransaccionFolioServiceImpl implements TransaccionFolioService {
     }
 
     @Override
+    @Transactional
     public TransaccionFolio registrarConsumo(
             Long reservaId,
             Long articuloId,
             int cantidad,
             Long registradoPor
     ) {
-        // Implementacion para buscar reserva, validar que este EN-CASA.
-        // Método
+
         Reserva reserva = reservaRepository.findById(reservaId)
-                .orElseThrow(() ->
-                        new RuntimeException("Reserva no encontrada")
-                );
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
 
         if (reserva.getEstado() != EstadoReserva.EN_CASA) {
             throw new ReservaNoEnCasaException(reservaId);
         }
 
-        // Validación de Articulo de inventario y stock.
         ArticuloInventario articulo = articuloInventarioRepository.findById(articuloId)
                 .orElseThrow(() -> new ArticuloNoEncontradoException(articuloId));
 
@@ -111,48 +108,43 @@ public class TransaccionFolioServiceImpl implements TransaccionFolioService {
             throw new RuntimeException("La cantidad debe ser mayor a cero");
         }
 
+        BigDecimal cantidadBD = BigDecimal.valueOf(cantidad);
 
-        if (articulo.getStockActual() < cantidad) {
+        // VALIDACIÓN CORRECTA
+        if (articulo.getStockActual().compareTo(cantidadBD) < 0) {
             throw new StockInsuficienteException(
                     articulo.getNombre(),
                     articulo.getStockActual(),
-                    cantidad
+                    cantidadBD
             );
         }
 
-        // Validar que todo consumo menora la cantidad de stock actual, para evitar registrar consumos parciales.
+        // MOVIMIENTO INVENTARIO
         MovimientoInventario movimiento = new MovimientoInventario();
         movimiento.setArticulo(articulo);
         movimiento.setTipo(TipoMovimiento.SALIDA);
-        movimiento.setCantidad((double) cantidad);
+        movimiento.setCantidad(cantidadBD);
         movimiento.setFechaMovimiento(LocalDateTime.now());
         movimiento.setMotivo("Consumo habitación " + reserva.getHabitacion().getNumero());
         movimiento.setRegistradoPor(registradoPor);
 
-        // Movimiento de inventario ya guardado
         movimientoInventarioRepository.save(movimiento);
 
-        // Actualizar stock del artículo
+        // ACTUALIZAR STOCK
         articulo.setStockActual(
-                articulo.getStockActual() - cantidad
+                articulo.getStockActual().subtract(cantidadBD)
         );
         articuloInventarioRepository.save(articulo);
 
-        // Obtener el precio unitario del artículo para calcular el total de la transacción
+        //  TRANSACCIÓN
+        BigDecimal precioUnitario = articulo.getCostoUnitario();
 
-        BigDecimal precioUnitario = articulo.getCostoUnitario(); // usa el getter REAL del modelo que es costoUnitario.
-
-        // Calcular el total
-        BigDecimal total = precioUnitario.multiply(
-                BigDecimal.valueOf(cantidad)
-        );
+        BigDecimal total = precioUnitario.multiply(cantidadBD);
 
         TransaccionFolio transaccion = new TransaccionFolio();
         transaccion.setReserva(reserva);
         transaccion.setTipo(TipoTransaccion.CARGO_CONSUMO);
-        transaccion.setDescripcion(
-                "Consumo: " + articulo.getNombre() + " x" + cantidad
-        );
+        transaccion.setDescripcion("Consumo: " + articulo.getNombre() + " x" + cantidad);
         transaccion.setPrecioUnitario(precioUnitario);
         transaccion.setCantidad(cantidad);
         transaccion.setTotal(total);
@@ -160,6 +152,5 @@ public class TransaccionFolioServiceImpl implements TransaccionFolioService {
         transaccion.setRegistradoPor(registradoPor);
 
         return transaccionFolioRepository.save(transaccion);
-
     }
 }

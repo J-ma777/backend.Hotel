@@ -1,12 +1,6 @@
 package com.hotelBackend.service;
 
-import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.PlanTarifario;
-import com.hotelBackend.model.Reserva;
-import com.hotelBackend.model.TicketMantenimiento;
-import com.hotelBackend.model.enums.EstadoHabitacion;
-import com.hotelBackend.model.enums.EstadoReserva;
-import com.hotelBackend.model.enums.EstadoTicket;
 import com.hotelBackend.repository.PlanTarifarioRepository;
 import com.hotelBackend.service.Implementaciones.PlanTarifarioServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -17,10 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;

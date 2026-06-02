@@ -23,12 +23,8 @@ public class ArticuloInventarioServiceImpl implements ArticuloInventarioService 
     @Override
     public ArticuloInventario crear(ArticuloInventario articulo) {
 
-        if (articulo.getStockActual() == null) {
-            articulo.setStockActual(0.0);
-        }
-
-        if (articulo.getStockMinimo() == null) {
-            articulo.setStockMinimo(0.0);
+        if (articulo.getCostoUnitario() == null) {
+            throw new IllegalArgumentException("El costo unitario es obligatorio");
         }
 
         return articuloInventarioRepository.save(articulo);

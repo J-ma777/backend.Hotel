@@ -138,7 +138,7 @@ public class TransaccionFolioServiceImplTest {
         ArticuloInventario articulo = new ArticuloInventario();
         articulo.setId(5L);
         articulo.setNombre("Agua Minibar");
-        articulo.setStockActual(10.0);
+        articulo.setStockActual(BigDecimal.valueOf(10.0));
         articulo.setCostoUnitario(new BigDecimal("5.00"));
 
         when(reservaRepository.findById(1L))
@@ -164,7 +164,8 @@ public class TransaccionFolioServiceImplTest {
         assertThat(tx.getTotal()).isEqualByComparingTo("10.00");
         assertThat(tx.getRegistradoPor()).isEqualTo(10L);
 
-        assertThat(articulo.getStockActual()).isEqualTo(8);
+        assertThat(articulo.getStockActual())
+                .isEqualByComparingTo(BigDecimal.valueOf(8.0));
 
         verify(movimientoInventarioRepository).save(any(MovimientoInventario.class));
         verify(articuloInventarioRepository).save(articulo);
@@ -185,7 +186,7 @@ public class TransaccionFolioServiceImplTest {
         ArticuloInventario articulo = new ArticuloInventario();
         articulo.setId(5L);
         articulo.setNombre("Agua Minibar");
-        articulo.setStockActual(10.0);
+        articulo.setStockActual(BigDecimal.valueOf(10.0));
         articulo.setCostoUnitario(new BigDecimal("5.00"));
 
         when(reservaRepository.findById(1L))
@@ -209,7 +210,7 @@ public class TransaccionFolioServiceImplTest {
         assertThat(tx.getTipo()).isEqualTo(TipoTransaccion.CARGO_CONSUMO);
         assertThat(tx.getCantidad()).isEqualTo(2);
         assertThat(tx.getTotal()).isEqualByComparingTo("10.00");
-        assertThat(articulo.getStockActual()).isEqualTo(8.0);
+        assertThat(articulo.getStockActual()).isEqualByComparingTo(BigDecimal.valueOf(8.0));
 
         verify(movimientoInventarioRepository).save(any(MovimientoInventario.class));
     }
@@ -243,7 +244,7 @@ public class TransaccionFolioServiceImplTest {
         reserva.setEstado(EstadoReserva.EN_CASA);
 
         ArticuloInventario articulo = new ArticuloInventario();
-        articulo.setStockActual(1.0);
+        articulo.setStockActual(BigDecimal.valueOf(1.0));
         articulo.setCostoUnitario(new BigDecimal("5.00"));
 
         when(reservaRepository.findById(1L))
