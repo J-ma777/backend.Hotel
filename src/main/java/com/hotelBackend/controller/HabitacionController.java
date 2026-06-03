@@ -25,15 +25,6 @@ public class HabitacionController {
     }
 
     @PreAuthorize("hasAuthority('HABITACION_VER')")
-    @GetMapping("/disponibles")
-    public List<HabitacionResponse> disponibles(
-            @RequestParam LocalDate inicio,
-            @RequestParam LocalDate fin
-    ){
-        return  habitacionService.buscarDisponibles(inicio, fin);
-    }
-
-    @PreAuthorize("hasAuthority('HABITACION_VER')")
     @GetMapping("/{id}")
     public Habitacion obtener(@PathVariable Long id) {
         return habitacionService.obtenerPorId(id);
@@ -69,6 +60,20 @@ public class HabitacionController {
                 .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAuthority('HABITACION_VER')")
+    @GetMapping("/disponibles")
+    public List<HabitacionResponse> obtenerDisponibles(
+            @RequestParam Long tipoHabitacionId,
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin) {
+
+        return habitacionService.obtenerDisponiblesPorTipo(
+                tipoHabitacionId,
+                LocalDate.parse(fechaInicio),
+                LocalDate.parse(fechaFin)
+        );
     }
 
 }

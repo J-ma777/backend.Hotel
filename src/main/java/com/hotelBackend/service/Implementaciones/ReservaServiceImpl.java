@@ -1,6 +1,7 @@
 package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.dto.request.CrearReservaRequest;
+import com.hotelBackend.dto.response.ReservaResponse;
 import com.hotelBackend.exception.EstadoReservaInvalidoException;
 import com.hotelBackend.exception.HabitacionNoDisponibleException;
 import com.hotelBackend.exception.ReservaNoEncontradaException;
@@ -73,7 +74,6 @@ public class ReservaServiceImpl implements ReservaService {
 
         reserva.setPlanTarifario(plan);
 
-
         return reservaRepository.save(reserva);
     }
 
@@ -84,12 +84,14 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
-    public Reserva obtenerPorId(Long id) {
-        return reservaRepository.findById(id)
-                .orElseThrow(() ->
-                        new ReservaNoEncontradaException(id)
-                );
+    public ReservaResponse obtenerPorId(Long id) {
+
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new ReservaNoEncontradaException(id));
+
+        return mapToResponse(reserva);
     }
+
 
     @Override
 
@@ -121,10 +123,15 @@ public class ReservaServiceImpl implements ReservaService {
         return reservaRepository.save(reserva);
     }
 
+    private Reserva buscarEntidad(Long id) {
+        return reservaRepository.findById(id)
+                .orElseThrow(() -> new ReservaNoEncontradaException(id));
+    }
+
     @Override
     public Reserva marcarEnCasa(Long id) { // CHECK-IN
         // Validar reserva existe
-        Reserva reserva = obtenerPorId(id);
+        Reserva reserva = buscarEntidad(id);
 
         // Validar estado de reserva
         if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
@@ -222,52 +229,53 @@ public class ReservaServiceImpl implements ReservaService {
             throw new RuntimeException("Solo reservas CONFIRMADAS pueden hacer check-in");
         }
 
-        // validar disponibilidad (MUY IMPORTANTE)
-        boolean conflicto = reservaRepository.existsConflicto(
-                habitacionId,
-                reserva.getFechaEntrada(),
-                reserva.getFechaSalida()
-        );
-
-        if (conflicto) {
-            throw new RuntimeException("La habitación ya no está disponible");
-        }
-
         // Obtener habitación
         Habitacion habitacion = habitacionRepository.findById(habitacionId)
                 .orElseThrow(() -> new RuntimeException("Habitación no encontrada"));
 
-        // Asignar habitación
+        // Validar estado de la habitacioón muy importante
+        if (habitacion.getEstado() != EstadoHabitacion.DISPONIBLE) {
+            throw new RuntimeException("La habitación no está disponible");
+        }
+
+        // Asignar habitación a reserva
         reserva.setHabitacion(habitacion);
 
-        // Cambiar estado
+        // Cambiar estado de reserva
         reserva.setEstado(EstadoReserva.EN_CASA);
 
-        // Calcular precio por noches que esta reservada
-        long noches = calcularNoches(reserva);
+        // Marcar habiación ocupada
+        habitacion.setEstado(EstadoHabitacion.OCUPADA);
+        habitacionRepository.save(habitacion);
 
-        BigDecimal precio = reserva.getPlanTarifario().getPrecioPorNoche();
 
         Long userId = AuthUtil.getCurrentUserId();
 
-        transaccionFolioService.registrarTransaccion(
-                reserva.getId(),
-                TipoTransaccion.ALOJAMIENTO,
-                "Estadía " + noches + " noches",
-                precio,
-                (int) noches,
-                userId
-        );
+        // folio por noche
+        for (var noche = reserva.getFechaEntrada();
+             noche.isBefore(reserva.getFechaSalida());
+             noche = noche.plusDays(1)) {
+
+            BigDecimal precio = reserva.getPlanTarifario().getPrecioPorNoche();
+
+            transaccionFolioService.registrarTransaccion(
+                    reserva.getId(),
+                    TipoTransaccion.CARGO_NOCHE,
+                    "Noche " + noche,
+                    precio,
+                    1,
+                    userId
+            );
+        }
 
         return reservaRepository.save(reserva);
-
     }
 
     @Override
     public Reserva realizarCheckout(Long id) {
 
         // 1. Validar que exista la reserva
-        Reserva reserva = obtenerPorId(id);
+        Reserva reserva = buscarEntidad(id);
 
         // 2. Validar estado correcto
         if (reserva.getEstado() != EstadoReserva.EN_CASA) {
@@ -350,6 +358,34 @@ public class ReservaServiceImpl implements ReservaService {
                 reserva.getFechaEntrada(),
                 reserva.getFechaSalida()
         );
+    }
+
+    private ReservaResponse mapToResponse(Reserva entity) {
+
+        ReservaResponse res = new ReservaResponse();
+
+        res.setId(entity.getId());
+        res.setFechaEntrada(entity.getFechaEntrada());
+        res.setFechaSalida(entity.getFechaSalida());
+        res.setEstado(entity.getEstado().name());
+
+        // AQUÍ VA LO IMPORTANTE
+        res.setTipoHabitacionId(
+                entity.getPlanTarifario().getTipoHabitacion().getId()
+        );
+
+        res.setTipoHabitacionNombre(
+                entity.getPlanTarifario().getTipoHabitacion().getNombre()
+        );
+
+        res.setPrecioPorNoche(
+                entity.getPlanTarifario().getPrecioPorNoche()
+        );
+
+        res.setNombreHuesped(entity.getNombreHuesped());
+        res.setDocumentoHuesped(entity.getDocumentoHuesped());
+
+        return res;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.hotelBackend.service;
 
 import com.hotelBackend.dto.request.CrearReservaRequest;
+import com.hotelBackend.dto.response.ReservaResponse;
 import com.hotelBackend.model.Reserva;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public interface ReservaService {
 
     List<Reserva> listar();
 
-    Reserva obtenerPorId(Long id);
+    ReservaResponse obtenerPorId(Long id);
 
     Reserva cancelar(Long id);
 

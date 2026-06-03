@@ -60,27 +60,6 @@ public class HabitacionServiceImpl implements HabitacionService {
                 .toList();
     }
 
-    // BUSCAR DISPONIBLES (CORREGIDO)
-    @Override
-    public List<HabitacionResponse> buscarDisponibles(LocalDate inicio, LocalDate fin) {
-
-        List<Habitacion> disponibles = habitacionRepository.findDisponibles(inicio, fin);
-
-        return disponibles.stream()
-                .map(h -> {
-                    boolean ocupada = reservaRepository.existsByHabitacionIdAndEstadoIn(
-                            h.getId(),
-                            List.of(
-                                    EstadoReserva.CONFIRMADA,
-                                    EstadoReserva.EN_CASA
-                            )
-                    );
-
-                    return new HabitacionResponse(h, ocupada);
-                })
-                .toList();
-    }
-
     @Override
     public Habitacion obtenerPorId(Long id) {
         return habitacionRepository.findById(id)
@@ -117,4 +96,18 @@ public class HabitacionServiceImpl implements HabitacionService {
                 })
                 .toList();
     }
+
+    @Override
+    public List<HabitacionResponse> obtenerDisponiblesPorTipo(
+            Long tipoHabitacionId,
+            LocalDate inicio,
+            LocalDate fin) {
+
+        return habitacionRepository
+                .findDisponiblesPorTipo(tipoHabitacionId, inicio, fin)
+                .stream()
+                .map(HabitacionResponse::new)
+                .toList();
+    }
+
 }

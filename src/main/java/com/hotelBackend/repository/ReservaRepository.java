@@ -15,6 +15,7 @@ SELECT COUNT(r) > 0 FROM Reserva r
 WHERE r.habitacion.id = :habitacionId
 AND r.habitacion IS NOT NULL
 AND r.estado IN ('CONFIRMADA', 'EN_CASA')
+AND r.id <> :reservaId
 AND (
     :inicio < r.fechaSalida
     AND :fin > r.fechaEntrada
@@ -23,7 +24,8 @@ AND (
     boolean existsConflicto(
             Long habitacionId,
             LocalDate inicio,
-            LocalDate fin
+            LocalDate fin,
+            Long reservaId
     );
 
 

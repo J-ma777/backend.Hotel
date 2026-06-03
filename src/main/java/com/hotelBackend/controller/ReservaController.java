@@ -2,6 +2,7 @@ package com.hotelBackend.controller;
 
 import com.hotelBackend.dto.request.CheckInRequest;
 import com.hotelBackend.dto.request.CrearReservaRequest;
+import com.hotelBackend.dto.response.ReservaResponse;
 import com.hotelBackend.model.Reserva;
 import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.ReservaService;
@@ -32,7 +33,7 @@ public class ReservaController {
 
     @PreAuthorize("hasAuthority('RESERVA_VER')")
     @GetMapping("/{id}")
-    public Reserva obtenerPorId(@PathVariable Long id) {
+    public ReservaResponse obtenerPorId(@PathVariable Long id) {
         return reservaService.obtenerPorId(id);
     }
 

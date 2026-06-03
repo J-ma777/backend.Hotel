@@ -20,7 +20,11 @@ public interface HabitacionService {
 
     void eliminar(Long id); // Administración de habitaciones, se elimina solo si existe la habitación
 
-    List<HabitacionResponse> buscarDisponibles(LocalDate inicio, LocalDate fin);
-
     List<Habitacion> obtenerParaMantenimiento(); // Método nuevo para obtener habitaciones que necesitan mantenimiento, se llama en el controlador HabitacionController.obtenerParaMantenimiento
+
+    List<HabitacionResponse> obtenerDisponiblesPorTipo(
+            Long tipoHabitacionId,
+            LocalDate inicio,
+            LocalDate fin
+    ); // Método nuevo para obtener habitaciones disponibles por tipo, se llama en el controlador HabitacionController.obtenerDisponiblesPorTipo
 }
