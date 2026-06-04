@@ -1,5 +1,6 @@
 package com.hotelBackend.service.Implementaciones;
 
+import com.hotelBackend.dto.response.FolioResumenResponse;
 import com.hotelBackend.exception.ArticuloNoEncontradoException;
 import com.hotelBackend.exception.ReservaNoEnCasaException;
 import com.hotelBackend.exception.StockInsuficienteException;
@@ -34,6 +35,7 @@ public class TransaccionFolioServiceImpl implements TransaccionFolioService {
     private final MovimientoInventarioRepository movimientoInventarioRepository;
 
     @Override
+    @Transactional
     public TransaccionFolio registrarTransaccion(
             Long reservaId,
             TipoTransaccion tipo,
@@ -152,5 +154,37 @@ public class TransaccionFolioServiceImpl implements TransaccionFolioService {
         transaccion.setRegistradoPor(registradoPor);
 
         return transaccionFolioRepository.save(transaccion);
+    }
+
+    @Override
+    public FolioResumenResponse obtenerFolioResumen(Long reservaId) {
+
+        BigDecimal cargos = transaccionFolioRepository.sumByReservaAndTipos(
+                reservaId,
+                List.of(
+                        TipoTransaccion.CARGO_NOCHE,
+                        TipoTransaccion.CARGO_CONSUMO
+                )
+        );
+
+        BigDecimal pagos = transaccionFolioRepository.sumByReservaAndTipos(
+                reservaId,
+                List.of(TipoTransaccion.PAGO)
+        );
+
+        BigDecimal descuentos = transaccionFolioRepository.sumByReservaAndTipos(
+                reservaId,
+                List.of(TipoTransaccion.DESCUENTO)
+        );
+
+        BigDecimal totalCargosNeto = cargos.subtract(descuentos);
+        BigDecimal balance = totalCargosNeto.subtract(pagos);
+
+        return new FolioResumenResponse(
+                totalCargosNeto,
+                pagos,
+                descuentos,
+                balance
+        );
     }
 }

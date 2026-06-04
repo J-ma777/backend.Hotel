@@ -2,7 +2,9 @@ package com.hotelBackend.controller;
 
 import com.hotelBackend.dto.request.CheckInRequest;
 import com.hotelBackend.dto.request.CrearReservaRequest;
+import com.hotelBackend.dto.response.ReservaCheckoutResponse;
 import com.hotelBackend.dto.response.ReservaResponse;
+import com.hotelBackend.mapper.ReservaMapper;
 import com.hotelBackend.model.Reserva;
 import com.hotelBackend.security.util.AuthUtil;
 import com.hotelBackend.service.ReservaService;
@@ -24,6 +26,7 @@ import java.util.List;
 public class ReservaController {
 
     private final ReservaService reservaService;
+    private final ReservaMapper reservaMapper;
 
     @PreAuthorize("hasAuthority('RESERVA_VER')")
     @GetMapping
@@ -51,8 +54,10 @@ public class ReservaController {
 
     @PreAuthorize("hasAuthority('RESERVA_CHECKOUT')")
     @PutMapping("/{id}/checkout")
-    public Reserva checkout(@PathVariable Long id) {
-        return reservaService.realizarCheckout(id);
+    public ReservaResponse checkout(@PathVariable Long id) {
+        Reserva reserva = reservaService.realizarCheckout(id);
+
+        return reservaMapper.toResponse(reserva);
     }
 
     @PreAuthorize("hasAuthority('RESERVA_CANCELAR')")
@@ -99,6 +104,16 @@ public class ReservaController {
         );
 
         return reservaService.confirmar(id);
+    }
+
+
+    @PreAuthorize("hasAuthority('RESERVA_CHECKOUT')")
+    @GetMapping("/checkout")
+    public List<ReservaCheckoutResponse> obtenerReservasParaCheckout() {
+        return reservaService.obtenerReservasParaCheckout()
+                .stream()
+                .map(reservaMapper::toCheckoutResponse)
+                .toList();
     }
 
 }

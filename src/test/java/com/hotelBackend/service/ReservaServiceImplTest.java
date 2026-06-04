@@ -1,5 +1,6 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.dto.response.ReservaResponse;
 import com.hotelBackend.exception.EstadoReservaInvalidoException;
 import com.hotelBackend.exception.HabitacionNoDisponibleException;
 import com.hotelBackend.exception.ReservaNoEncontradaException;
@@ -131,7 +132,7 @@ class ReservaServiceImplTest {
         when(reservaRepository.findById(1L))
                 .thenReturn(Optional.of(reserva));
 
-        Reserva resultado = reservaService.obtenerPorId(1L);
+        ReservaResponse resultado = reservaService.obtenerPorId(1L);
 
         assertNotNull(resultado);
         assertEquals(1L, resultado.getId());

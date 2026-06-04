@@ -1,6 +1,7 @@
 package com.hotelBackend.service.Implementaciones;
 
 import com.hotelBackend.dto.request.CrearReservaRequest;
+import com.hotelBackend.dto.response.FolioResumenResponse;
 import com.hotelBackend.dto.response.ReservaResponse;
 import com.hotelBackend.exception.EstadoReservaInvalidoException;
 import com.hotelBackend.exception.HabitacionNoDisponibleException;
@@ -285,7 +286,17 @@ public class ReservaServiceImpl implements ReservaService {
             );
         }
 
-        // 3. Obtener habitación asignada
+        // 3 Validación financiera
+        FolioResumenResponse resumen = transaccionFolioService.obtenerFolioResumen(id);
+
+        if (resumen.getBalance().compareTo(BigDecimal.ZERO) > 0) {
+            throw new IllegalStateException(
+                    "No se puede hacer checkout con balance o saldo pendiente: "
+            );
+        }
+
+
+        // 4 Obtener habitación asignada
         Habitacion habitacion = reserva.getHabitacion();
 
         if (habitacion == null) {
@@ -294,7 +305,7 @@ public class ReservaServiceImpl implements ReservaService {
             );
         }
 
-        // 4. Cambiar estado de habitación (flujo real de hotel)
+        // 5 Cambiar estado de habitación (flujo real de hotel)
         // Opción bastate cvr ya que pasa a LIMPIEZA cuando el cliente sale
         habitacion.setEstado(EstadoHabitacion.SUCIA);
 
@@ -303,13 +314,13 @@ public class ReservaServiceImpl implements ReservaService {
 
         habitacionRepository.save(habitacion);
 
-        // 5. Cambiar estado de la reserva
+        // 6 Cambiar estado de la reserva
         reserva.setEstado(EstadoReserva.SALIDA_CHECKOUT);
 
-        // 6. Desvincular habitación (MUY IMPORTANTE)
+        // 7 Desvincular habitación (MUY IMPORTANTE)
         reserva.setHabitacion(null);
 
-        // 7. Registrar fecha real de salida (opcional pero PRO)
+        // 8 Registrar fecha real de salida (opcional pero PRO)
         reserva.setFechaCheckout(LocalDateTime.now());
 
         return reservaRepository.save(reserva);
@@ -386,6 +397,11 @@ public class ReservaServiceImpl implements ReservaService {
         res.setDocumentoHuesped(entity.getDocumentoHuesped());
 
         return res;
+    }
+
+    @Override
+    public List<Reserva> obtenerReservasParaCheckout() {
+        return reservaRepository.findByEstadoAndHabitacionIsNotNull(EstadoReserva.EN_CASA);
     }
 
 }

@@ -28,7 +28,7 @@ AND (
             Long reservaId
     );
 
-
+    // Metodo derivado (findBy...)
     List<Reserva> findByEstadoAndFechaEntradaBefore(
             EstadoReserva estado,
             LocalDate fecha
@@ -39,4 +39,5 @@ AND (
             List<EstadoReserva> estados
     );
 
+    List<Reserva> findByEstadoAndHabitacionIsNotNull(EstadoReserva estado);
 }

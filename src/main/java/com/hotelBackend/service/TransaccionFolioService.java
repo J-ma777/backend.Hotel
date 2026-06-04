@@ -1,5 +1,6 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.dto.response.FolioResumenResponse;
 import com.hotelBackend.model.TransaccionFolio;
 import com.hotelBackend.model.enums.TipoTransaccion;
 
@@ -29,4 +30,5 @@ public interface TransaccionFolioService {
             Long registradoPor
     );
 
+    FolioResumenResponse obtenerFolioResumen(Long reservaId);
 }

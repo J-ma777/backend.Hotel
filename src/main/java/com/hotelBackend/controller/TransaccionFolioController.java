@@ -1,5 +1,6 @@
 package com.hotelBackend.controller;
 
+import com.hotelBackend.dto.response.FolioResumenResponse;
 import com.hotelBackend.model.TransaccionFolio;
 import com.hotelBackend.model.enums.TipoTransaccion;
 import com.hotelBackend.security.util.AuthUtil;
@@ -87,5 +88,14 @@ public class TransaccionFolioController {
             @PathVariable Long reservaId
     ) {
         return transaccionFolioService.obtenerSaldoReserva(reservaId);
+    }
+
+
+    @PreAuthorize("hasAuthority('FOLIO_VER')")
+    @GetMapping("/reservas/{reservaId}/resumen")
+    public FolioResumenResponse obtenerResumen(
+            @PathVariable Long reservaId
+    ) {
+        return transaccionFolioService.obtenerFolioResumen(reservaId);
     }
 }

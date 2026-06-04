@@ -2,6 +2,7 @@ package com.hotelBackend.service;
 
 import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
+import com.hotelBackend.model.enums.EstadoHabitacion;
 import com.hotelBackend.model.enums.EstadoReserva;
 
 import java.time.LocalDate;
@@ -27,4 +28,6 @@ public interface HabitacionService {
             LocalDate inicio,
             LocalDate fin
     ); // Método nuevo para obtener habitaciones disponibles por tipo, se llama en el controlador HabitacionController.obtenerDisponiblesPorTipo
+
+    //Habitacion cambiarEstado(Long id, EstadoHabitacion nuevoEstado);
 }

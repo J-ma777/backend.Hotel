@@ -28,5 +28,7 @@ public interface ReservaService {
 
     Reserva realizarCheckout(Long id);
 
+    List<Reserva> obtenerReservasParaCheckout();
+
     void procesarNoPresentadas();
 }
