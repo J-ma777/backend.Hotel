@@ -1,7 +1,10 @@
 package com.hotelBackend.controller;
 
+import com.hotelBackend.dto.request.ActualizarHabitacionRequest;
+import com.hotelBackend.dto.response.HabitacionMapaResponse;
 import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
+import com.hotelBackend.model.enums.EstadoHabitacion;
 import com.hotelBackend.service.HabitacionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,13 @@ public class HabitacionController {
     }
 
     @PreAuthorize("hasAuthority('HABITACION_VER')")
+    @GetMapping("/mapa")
+    public List<HabitacionMapaResponse> obtenerMapa() {
+        return habitacionService.obtenerMapa();
+    }
+
+
+    @PreAuthorize("hasAuthority('HABITACION_VER')")
     @GetMapping("/{id}")
     public Habitacion obtener(@PathVariable Long id) {
         return habitacionService.obtenerPorId(id);
@@ -38,11 +48,11 @@ public class HabitacionController {
 
     @PreAuthorize("hasAuthority('HABITACION_EDITAR')")
     @PutMapping("/{id}")
-    public Habitacion actualizar(
+    public HabitacionResponse actualizar(
             @PathVariable Long id,
-            @RequestBody Habitacion habitacion
+            @RequestBody ActualizarHabitacionRequest request
     ) {
-        return habitacionService.actualizar(id, habitacion);
+        return habitacionService.actualizar(id, request);
     }
 
     @PreAuthorize("hasAuthority('HABITACION_ELIMINAR')")
@@ -60,6 +70,16 @@ public class HabitacionController {
                 .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAuthority('HABITACION_EDITAR')")
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<Habitacion> cambiarEstado(
+            @PathVariable Long id,
+            @RequestParam EstadoHabitacion estado) {
+
+        Habitacion habitacion = habitacionService.cambiarEstado(id, estado);
+        return ResponseEntity.ok(habitacion);
     }
 
     @PreAuthorize("hasAuthority('HABITACION_VER')")

@@ -117,6 +117,17 @@ public class TicketMantenimientoServiceImpl implements TicketMantenimientoServic
         Habitacion habitacion = habitacionRepository.findById(habitacionId)
                 .orElseThrow(() -> new RuntimeException("Habitación no encontrada"));
 
+        if (habitacion.getEstado() == EstadoHabitacion.FUERA_DE_SERVICIO) {
+            throw new IllegalStateException("La habitación ya está fuera de servicio");
+        }
+        boolean existeTicketActivo = ticketMantenimientoRepository.existsByHabitacionIdAndEstadoIn(
+                habitacionId,
+                List.of(EstadoTicket.ABIERTO, EstadoTicket.EN_PROCESO)
+        );
+        if (existeTicketActivo) {
+            throw new IllegalStateException("La habitación ya tiene un ticket activo");
+        }
+
         TicketMantenimiento ticket = new TicketMantenimiento();
 
         ticket.setHabitacion(habitacion);
@@ -125,6 +136,13 @@ public class TicketMantenimientoServiceImpl implements TicketMantenimientoServic
         ticket.setReportadoEn(LocalDateTime.now());
         ticket.setReportadoPor(AuthUtil.getCurrentUserId());
 
+        // RF-12
+        habitacion.setEstado(EstadoHabitacion.FUERA_DE_SERVICIO);
+
+        // Guardar habitación
+        habitacionRepository.save(habitacion);
+
+        // Gusrdar ticket
         return ticketMantenimientoRepository.save(ticket);
     }
 

@@ -91,9 +91,9 @@ public class RegistroLimpiezaServiceImpl implements RegistroLimpiezaService {
         if (estadoNuevo == EstadoHabitacion.INSPECCIONADA) {
             boolean tieneTicketsAbiertos =
                     ticketMantenimientoRepository
-                            .existsByHabitacionIdAndEstado(
+                            .existsByHabitacionIdAndEstadoIn(
                                     habitacion.getId(),
-                                    EstadoTicket.ABIERTO
+                                    List.of(EstadoTicket.ABIERTO, EstadoTicket.EN_PROCESO)
                             );
 
             if (!tieneTicketsAbiertos) {

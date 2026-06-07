@@ -1,5 +1,7 @@
 package com.hotelBackend.service;
 
+import com.hotelBackend.dto.request.ActualizarHabitacionRequest;
+import com.hotelBackend.dto.response.HabitacionMapaResponse;
 import com.hotelBackend.dto.response.HabitacionResponse;
 import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.enums.EstadoHabitacion;
@@ -13,7 +15,7 @@ public interface HabitacionService {
 
     Habitacion guardar(Habitacion habitacion); // Para dar de alta una nueva habitación
 
-    Habitacion actualizar(Long id, Habitacion habitacion); // Edicion controlada, se actualiza solo si existe la habitación
+    HabitacionResponse actualizar(Long id, ActualizarHabitacionRequest request); // Edicion controlada, se actualiza solo si existe la habitación
 
     List<HabitacionResponse> listar(); // Vista general de todas las hbitaciones
 
@@ -29,5 +31,7 @@ public interface HabitacionService {
             LocalDate fin
     ); // Método nuevo para obtener habitaciones disponibles por tipo, se llama en el controlador HabitacionController.obtenerDisponiblesPorTipo
 
-    //Habitacion cambiarEstado(Long id, EstadoHabitacion nuevoEstado);
+    Habitacion cambiarEstado(Long id, EstadoHabitacion nuevoEstado);
+
+    List<HabitacionMapaResponse> obtenerMapa();
 }

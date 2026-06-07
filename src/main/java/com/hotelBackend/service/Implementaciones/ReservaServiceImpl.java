@@ -380,18 +380,30 @@ public class ReservaServiceImpl implements ReservaService {
         res.setFechaSalida(entity.getFechaSalida());
         res.setEstado(entity.getEstado().name());
 
-        // AQUÍ VA LO IMPORTANTE
-        res.setTipoHabitacionId(
-                entity.getPlanTarifario().getTipoHabitacion().getId()
-        );
+        // Acá va lo importante para no romper el backend depués de agregar PlanTarifario a Reserva, se mapea la info del plan tarifario a la respuesta de reserva
+        if (entity.getPlanTarifario() != null
+                && entity.getPlanTarifario().getTipoHabitacion() != null) {
 
-        res.setTipoHabitacionNombre(
-                entity.getPlanTarifario().getTipoHabitacion().getNombre()
-        );
+            res.setTipoHabitacionId(
+                    entity.getPlanTarifario().getTipoHabitacion().getId()
+            );
 
-        res.setPrecioPorNoche(
-                entity.getPlanTarifario().getPrecioPorNoche()
-        );
+            res.setTipoHabitacionNombre(
+                    entity.getPlanTarifario().getTipoHabitacion().getNombre()
+            );
+
+            res.setPrecioPorNoche(
+                    entity.getPlanTarifario().getPrecioPorNoche()
+            );
+
+        } else {
+
+            // Valores por defecto para evitar romper
+            res.setTipoHabitacionId(null);
+            res.setTipoHabitacionNombre("Sin plan");
+            res.setPrecioPorNoche(null);
+
+        }
 
         res.setNombreHuesped(entity.getNombreHuesped());
         res.setDocumentoHuesped(entity.getDocumentoHuesped());

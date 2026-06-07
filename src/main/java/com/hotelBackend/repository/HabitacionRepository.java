@@ -66,4 +66,5 @@ public interface HabitacionRepository extends JpaRepository<Habitacion, Long> {
                 @Param("fin") LocalDate fin
         );
 
+    boolean existsByNumeroAndIdNot(String numero, Long id);
 }

@@ -1,5 +1,6 @@
 package com.hotelBackend.repository;
 
+import com.hotelBackend.model.Habitacion;
 import com.hotelBackend.model.Reserva;
 import com.hotelBackend.model.enums.EstadoReserva;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
@@ -40,4 +42,9 @@ AND (
     );
 
     List<Reserva> findByEstadoAndHabitacionIsNotNull(EstadoReserva estado);
+
+    Optional<Reserva> findByHabitacionAndEstado(
+            Habitacion habitacion,
+            EstadoReserva estado
+    );
 }
