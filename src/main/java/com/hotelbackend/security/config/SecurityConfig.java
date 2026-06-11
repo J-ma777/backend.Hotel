@@ -88,8 +88,19 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+
+                        // Permitir preflight (CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Publico
                         .requestMatchers("/auth/**").permitAll()
+
+                        // SOLO ADMIN GESTIONA USUARIOS
+                        .requestMatchers("/usuarios/**").hasAuthority("GESTIONAR_USUARIOS")
+                        .requestMatchers("/roles/**").hasAuthority("GESTIONAR_USUARIOS")
+                        .requestMatchers("/permisos/**").hasAuthority("GESTIONAR_USUARIOS")
+
+                        // Todo lo demás requiere login
                         .anyRequest().authenticated()
                 )
 

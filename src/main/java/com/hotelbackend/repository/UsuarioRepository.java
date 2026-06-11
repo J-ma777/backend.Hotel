@@ -13,8 +13,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // findBy significa buscar por el campo que se le indique que en este caso es nombreUsuario.
     Optional<Usuario> findByNombreUsuario(String usuarioNombre);
 
+    boolean existsByCorreo(String correo);
+
     @Query("""
-    SELECT u FROM Usuario u
+    SELECT DISTINCT u FROM Usuario u
     JOIN FETCH u.rol r
     JOIN FETCH r.permisos
     WHERE u.nombreUsuario = :username

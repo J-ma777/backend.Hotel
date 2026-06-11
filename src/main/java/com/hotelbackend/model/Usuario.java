@@ -1,5 +1,6 @@
 package com.hotelbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class Usuario {
     @Column(name = "nombre_usuario", nullable = false, unique = true, length = 50)
     private String nombreUsuario;
 
+    @JsonIgnore
     @Column(name = "contrasena_hash", nullable = false, length = 255)
     private String contrasenaHash;  // siempre bcrypt, nunca texto plano
 
