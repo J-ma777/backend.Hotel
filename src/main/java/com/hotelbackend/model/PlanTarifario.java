@@ -1,5 +1,6 @@
 package com.hotelbackend.model;
 
+import com.hotelbackend.model.enums.TipoTarifa;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,17 +29,15 @@ public class PlanTarifario {
     @Column(name = "precio_por_noche", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioPorNoche;  // BigDecimal para evitar errores de redondeo en dinero
 
-    @Column(name = "es_fin_de_semana", nullable = false)
-    private Boolean esFinDeSemana;      // aplica sábado y domingo
-
-    @Column(name = "es_feriado", nullable = false)
-    private Boolean esFeriado;
-
     @Column(name = "valido_desde", nullable = false)
     private LocalDate validoDesde;
 
     @Column(name = "valido_hasta", nullable = false)
     private LocalDate validoHasta;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo-tarifa", nullable = false)
+    private TipoTarifa tipoTarifa;
 
     @ManyToOne
     @JoinColumn(name = "tipo_habitacion_id", nullable = false)

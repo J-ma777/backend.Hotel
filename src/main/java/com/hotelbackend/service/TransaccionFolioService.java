@@ -5,6 +5,7 @@ import com.hotelbackend.model.TransaccionFolio;
 import com.hotelbackend.model.enums.TipoTransaccion;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface TransaccionFolioService {
@@ -31,4 +32,6 @@ public interface TransaccionFolioService {
     );
 
     FolioResumenResponse obtenerFolioResumen(Long reservaId);
+
+    BigDecimal obtenerIngresos(LocalDate inicio, LocalDate fin);
 }

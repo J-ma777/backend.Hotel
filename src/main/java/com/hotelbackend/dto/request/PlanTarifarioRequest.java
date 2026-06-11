@@ -3,6 +3,7 @@ package com.hotelbackend.dto.request;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.hotelbackend.model.enums.TipoTarifa;
 import lombok.Data;
 
 @Data
@@ -13,6 +14,5 @@ public class PlanTarifarioRequest {
     private LocalDate validoDesde;
     private LocalDate validoHasta;
     private Long tipoHabitacionId;
-    private Boolean esFeriado;
-    private Boolean esFinDeSemana;
+    private TipoTarifa tipoTarifa;
 }

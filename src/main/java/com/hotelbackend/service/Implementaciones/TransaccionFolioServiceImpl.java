@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -186,6 +187,16 @@ public class TransaccionFolioServiceImpl implements TransaccionFolioService {
                 pagos,
                 descuentos,
                 balance
+        );
+    }
+
+    @Override
+    public BigDecimal obtenerIngresos(LocalDate inicio, LocalDate fin) {
+
+        return transaccionFolioRepository.obtenerIngresos(
+                TipoTransaccion.CARGO_NOCHE,
+                inicio.atStartOfDay(),
+                fin.atTime(23, 59, 59)
         );
     }
 }

@@ -2,6 +2,7 @@ package com.hotelbackend.controller;
 
 import com.hotelbackend.dto.request.CheckInRequest;
 import com.hotelbackend.dto.request.CrearReservaRequest;
+import com.hotelbackend.dto.response.DashboardResponse;
 import com.hotelbackend.dto.response.ReservaCheckoutResponse;
 import com.hotelbackend.dto.response.ReservaResponse;
 import com.hotelbackend.mapper.ReservaMapper;
@@ -17,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -116,4 +118,15 @@ public class ReservaController {
                 .toList();
     }
 
+    @PreAuthorize("hasAuthority('REPORTE_VER')")
+    @GetMapping("/dashboard")
+    public DashboardResponse obtenerDashboard(
+            @RequestParam LocalDate inicio,
+            @RequestParam LocalDate fin
+    ) {
+        if (inicio.isAfter(fin)) {
+            throw new IllegalArgumentException("La fecha no puede se mayor que fin");
+        }
+        return reservaService.obtenerDashboard(inicio, fin);
+    }
 }

@@ -27,8 +27,8 @@ public class Habitacion {
     private Integer piso;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private EstadoHabitacion estado;    // DISPONIBLE, OCUPADA, SUCIA, LIMPIANDO, INSPECCIONADA, FUERA_DE_SERVICIO
+    @Column(nullable = false)
+    private EstadoHabitacion estado = EstadoHabitacion.DISPONIBLE;    // DISPONIBLE, OCUPADA, SUCIA, LIMPIANDO, INSPECCIONADA, FUERA_DE_SERVICIO
 
     @ManyToOne
     @JoinColumn(name = "tipo_habitacion_id", nullable = false)

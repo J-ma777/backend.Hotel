@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TransaccionFolioRepository extends JpaRepository<TransaccionFolio, Long> {
@@ -22,6 +23,18 @@ public interface TransaccionFolioRepository extends JpaRepository<TransaccionFol
     BigDecimal sumByReservaAndTipos(
             @Param("reservaId") Long reservaId,
             @Param("tipos") List<TipoTransaccion> tipos
+    );
+
+    @Query("""
+    SELECT COALESCE(SUM(t.total), 0)
+    FROM TransaccionFolio t
+    WHERE t.tipo = :tipo
+    AND t.fechaTransaccion BETWEEN :inicio AND :fin
+""")
+    BigDecimal obtenerIngresos(
+            @Param("tipo") TipoTransaccion tipo,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
     );
 
 }

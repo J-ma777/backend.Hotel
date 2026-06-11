@@ -1,6 +1,7 @@
 package com.hotelbackend.service.Implementaciones;
 
 import com.hotelbackend.dto.request.CrearReservaRequest;
+import com.hotelbackend.dto.response.DashboardResponse;
 import com.hotelbackend.dto.response.FolioResumenResponse;
 import com.hotelbackend.dto.response.ReservaResponse;
 import com.hotelbackend.exception.EstadoReservaInvalidoException;
@@ -216,52 +217,57 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Override
     public Reserva realizarcheckIn(Long reservaId, Long habitacionId) {
+
+        // 1. Buscar reserva
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
 
-        // Validad estado
+        // 2. Validar estado
         if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
             throw new RuntimeException("Solo reservas CONFIRMADAS pueden hacer check-in");
         }
 
-        // Obtener habitación
+        // 3. Obtener habitación
         Habitacion habitacion = habitacionRepository.findById(habitacionId)
                 .orElseThrow(() -> new RuntimeException("Habitación no encontrada"));
 
-        // Validar estado de la habitacioón muy importante
+        // 4. Validar disponibilidad física
         if (habitacion.getEstado() != EstadoHabitacion.DISPONIBLE) {
             throw new RuntimeException("La habitación no está disponible");
         }
 
-        // Asignar habitación a reserva
+        // 5. Asignar habitación a la reserva
         reserva.setHabitacion(habitacion);
 
-        // Cambiar estado de reserva
-        reserva.setEstado(EstadoReserva.EN_CASA);
-
-        // Marcar habiación ocupada
-        habitacion.setEstado(EstadoHabitacion.OCUPADA);
-        habitacionRepository.save(habitacion);
-
-
+        // 6. Obtener usuario
         Long userId = AuthUtil.getCurrentUserId();
 
-        // folio por noche
-        for (var noche = reserva.getFechaEntrada();
+        // 7. GENERAR CARGOS (motor RF‑07 real)
+        for (LocalDate noche = reserva.getFechaEntrada();
              noche.isBefore(reserva.getFechaSalida());
              noche = noche.plusDays(1)) {
 
-            BigDecimal precio = reserva.getPlanTarifario().getPrecioPorNoche();
+            PlanTarifario tarifa = planTarifarioService.obtenerTarifaParaNoche(
+                    habitacion.getTipoHabitacion().getId(),
+                    noche
+            );
 
             transaccionFolioService.registrarTransaccion(
                     reserva.getId(),
                     TipoTransaccion.CARGO_NOCHE,
-                    "Noche " + noche,
-                    precio,
+                    "Noche " + noche + " - " + tarifa.getNombre(),
+                    tarifa.getPrecioPorNoche(),
                     1,
                     userId
             );
         }
+
+        // 8. Cambiar estado habitación (OCUPADA)
+        habitacion.setEstado(EstadoHabitacion.OCUPADA);
+        habitacionRepository.save(habitacion);
+
+        // 9. Cambiar estado reserva
+        reserva.setEstado(EstadoReserva.EN_CASA);
 
         return reservaRepository.save(reserva);
     }
@@ -410,4 +416,58 @@ public class ReservaServiceImpl implements ReservaService {
         return reservaRepository.findByEstadoAndHabitacionIsNotNull(EstadoReserva.EN_CASA);
     }
 
+    @Override
+    public double calcularOcupacion(LocalDate inicio, LocalDate fin) {
+
+        // 1. Obtener solo reservas relevantes
+        List<Reserva> reservas = reservaRepository.findByEstadoIn(
+                List.of(EstadoReserva.CONFIRMADA, EstadoReserva.EN_CASA)
+        );
+
+        long nochesOcupadas = 0;
+
+        // 2. Calcular noches ocupadas dentro del rango
+        for (Reserva r : reservas) {
+
+            // Recortar rango de la reserva al rango solicitado
+            LocalDate inicioReal = r.getFechaEntrada().isBefore(inicio)
+                    ? inicio
+                    : r.getFechaEntrada();
+
+            LocalDate finReal = r.getFechaSalida().isAfter(fin)
+                    ? fin
+                    : r.getFechaSalida();
+
+            // Verificar solapamiento
+            if (inicioReal.isBefore(finReal)) {
+                nochesOcupadas += ChronoUnit.DAYS.between(inicioReal, finReal);
+            }
+        }
+
+        // 3. Calcular capacidad total
+        long totalHabitaciones = habitacionRepository.count();
+        long dias = ChronoUnit.DAYS.between(inicio, fin);
+
+        if (dias == 0 || totalHabitaciones == 0) {
+            return 0;
+        }
+
+        long capacidadTotal = totalHabitaciones * dias;
+
+        // 4. % ocupación para mostrar en el dashboard XD
+        return (nochesOcupadas * 100.0) / capacidadTotal;
+    }
+
+    @Override
+    public DashboardResponse obtenerDashboard(LocalDate inicio, LocalDate fin) {
+
+        BigDecimal ingresos = transaccionFolioService.obtenerIngresos(inicio, fin);
+        double ocupacion = calcularOcupacion(inicio, fin);
+
+        DashboardResponse response = new DashboardResponse();
+        response.setIngresos(ingresos);
+        response.setOcupacion(ocupacion);
+
+        return response;
+    }
 }

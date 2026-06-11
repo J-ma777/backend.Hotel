@@ -1,9 +1,11 @@
 package com.hotelbackend.service;
 
 import com.hotelbackend.dto.request.CrearReservaRequest;
+import com.hotelbackend.dto.response.DashboardResponse;
 import com.hotelbackend.dto.response.ReservaResponse;
 import com.hotelbackend.model.Reserva;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ReservaService {
@@ -30,5 +32,9 @@ public interface ReservaService {
 
     List<Reserva> obtenerReservasParaCheckout();
 
+    DashboardResponse obtenerDashboard(LocalDate inicio, LocalDate fin);
+
     void procesarNoPresentadas();
+
+    double calcularOcupacion(LocalDate inicio, LocalDate fin);
 }

@@ -4,6 +4,7 @@ import com.hotelbackend.dto.request.PlanTarifarioRequest;
 import com.hotelbackend.dto.response.PlanTarifarioResponse;
 import com.hotelbackend.model.PlanTarifario;
 import com.hotelbackend.model.TipoHabitacion;
+import com.hotelbackend.model.enums.TipoTarifa;
 import com.hotelbackend.repository.PlanTarifarioRepository;
 import com.hotelbackend.repository.TipoHabitacionRepository;
 import com.hotelbackend.service.PlanTarifarioService;
@@ -11,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -26,59 +28,19 @@ public class PlanTarifarioServiceImpl implements PlanTarifarioService {
 
     // HU-20: Obtener tarifa por noche según tipo de día
     @Override
-    public PlanTarifario obtenerTarifaParaNoche(
-            Long tipoHabitacionId,
-            LocalDate fechaNoche
-    ) {
+    public PlanTarifario obtenerTarifaParaNoche(Long tipoHabitacionId, LocalDate fechaNoche) {
 
-        DayOfWeek dayOfWeek = fechaNoche.getDayOfWeek();
+        // 1. Determinar tipo de día
+        TipoTarifa tipoTarifa = obtenerTipoDia(fechaNoche);
 
-        boolean esFinSemana =
-                dayOfWeek == DayOfWeek.FRIDAY ||
-                        dayOfWeek == DayOfWeek.SATURDAY;
-
-        // 1️ PRIORIDAD: FERIADO
-        var feriado = planTarifarioRepository.buscarPlanes(
-                tipoHabitacionId,
-                fechaNoche,
-                true,
-                false
-        );
-
-        if (!feriado.isEmpty()) {
-            return feriado.get(0);
-        }
-
-        // 2️ PRIORIDAD: FIN DE SEMANA
-        if (esFinSemana) {
-            var finSemana = planTarifarioRepository.buscarPlanes(
-                    tipoHabitacionId,
-                    fechaNoche,
-                    false,
-                    true
-            );
-
-            if (!finSemana.isEmpty()) {
-                return finSemana.get(0);
-            }
-        }
-
-        // 3️ PRIORIDAD: ENTRE SEMANA
-        var entreSemana = planTarifarioRepository.buscarPlanes(
-                tipoHabitacionId,
-                fechaNoche,
-                false,
-                false
-        );
-
-        if (!entreSemana.isEmpty()) {
-            return entreSemana.get(0);
-        }
-
-        // CA-06: bloquear Check-in si no existe tarifa
-        throw new IllegalStateException(
-                "No existe un plan tarifario vigente para la fecha " + fechaNoche
-        );
+        // 2. Buscar tarifa en BD
+        return planTarifarioRepository
+                .findTarifaPorFecha(tipoHabitacionId, tipoTarifa, fechaNoche)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No existe tarifa para tipoHabitacionId=" + tipoHabitacionId +
+                                ", fecha=" + fechaNoche +
+                                ", tipoTarifa=" + tipoTarifa
+                ));
     }
 
     private PlanTarifarioResponse mapToResponse(PlanTarifario entity) {
@@ -113,8 +75,7 @@ public class PlanTarifarioServiceImpl implements PlanTarifarioService {
         entity.setPrecioPorNoche(request.getPrecioPorNoche());
         entity.setValidoDesde(request.getValidoDesde());
         entity.setValidoHasta(request.getValidoHasta());
-        entity.setEsFeriado(request.getEsFeriado());
-        entity.setEsFinDeSemana(request.getEsFinDeSemana());
+        entity.setTipoTarifa(request.getTipoTarifa());
 
         TipoHabitacion tipo = tipoHabitacionRepository
                 .findById(request.getTipoHabitacionId())
@@ -154,8 +115,7 @@ public class PlanTarifarioServiceImpl implements PlanTarifarioService {
 
         existente.setNombre(request.getNombre());
         existente.setPrecioPorNoche(request.getPrecioPorNoche());
-        existente.setEsFeriado(request.getEsFeriado());
-        existente.setEsFinDeSemana(request.getEsFinDeSemana());
+        existente.setTipoTarifa(request.getTipoTarifa());
         existente.setValidoDesde(request.getValidoDesde());
         existente.setValidoHasta(request.getValidoHasta());
 
@@ -187,4 +147,45 @@ public class PlanTarifarioServiceImpl implements PlanTarifarioService {
                 .toList();
     }
 
+    private TipoTarifa obtenerTipoDia(LocalDate fecha) {
+
+        // Ejemplo simple de feriados (puedes ajustar luego)
+        List<LocalDate> feriados = List.of(
+                LocalDate.of(2026, 1, 1),   // Año nuevo
+                LocalDate.of(2026, 7, 28),  // Fiestas patrias PE
+                LocalDate.of(2026, 12, 25)  // Navidad
+        );
+
+        if (feriados.contains(fecha)) {
+            return TipoTarifa.HOLIDAY;
+        }
+
+        DayOfWeek dia = fecha.getDayOfWeek();
+
+        if (dia == DayOfWeek.SATURDAY || dia == DayOfWeek.SUNDAY) {
+            return TipoTarifa.WEEKEND;
+        }
+
+        return TipoTarifa.WEEKDAY;
+    }
+
+    @Override
+    public BigDecimal obtenerPrecioPorFecha(Long tipoHabitacionId, LocalDate fecha) {
+        return BigDecimal.ZERO;
+    }
+
+    @Override
+    public BigDecimal calcularTotalReserva(Long tipoHabitacionId, LocalDate entrada, LocalDate salida) {
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (LocalDate fecha = entrada; fecha.isBefore(salida); fecha = fecha.plusDays(1)) {
+
+            PlanTarifario tarifa = obtenerTarifaParaNoche(tipoHabitacionId, fecha);
+
+            total = total.add(tarifa.getPrecioPorNoche());
+        }
+
+        return total;
+    }
 }

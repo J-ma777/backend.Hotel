@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -36,6 +35,10 @@ public class HabitacionServiceImpl implements HabitacionService {
 
     @Override
     public Habitacion guardar(Habitacion habitacion) {
+        // Asignar estado por defecto si no viene
+        if (habitacion.getEstado() == null){
+            habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+        }
         return habitacionRepository.save(habitacion);
     }
 
@@ -154,13 +157,23 @@ public class HabitacionServiceImpl implements HabitacionService {
     public List<HabitacionResponse> obtenerDisponiblesPorTipo(
             Long tipoHabitacionId,
             LocalDate inicio,
-            LocalDate fin) {
-
+            LocalDate fin
+    ) {
         return habitacionRepository
-                .findDisponiblesPorTipo(tipoHabitacionId, inicio, fin)
+                .findDisponiblesPorTipo(
+                        tipoHabitacionId,
+                        inicio,
+                        fin,
+                        EstadoHabitacion.DISPONIBLE,
+                        List.of(
+                                EstadoReserva.CONFIRMADA,
+                                EstadoReserva.EN_CASA
+                        )
+                )
                 .stream()
                 .map(HabitacionResponse::new)
                 .toList();
+
     }
 
     @Override

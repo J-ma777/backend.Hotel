@@ -1,10 +1,14 @@
 package com.hotelbackend.controller;
 
 import com.hotelbackend.dto.request.ActualizarHabitacionRequest;
+import com.hotelbackend.dto.request.CrearHabitacionRequest;
 import com.hotelbackend.dto.response.HabitacionMapaResponse;
 import com.hotelbackend.dto.response.HabitacionResponse;
 import com.hotelbackend.model.Habitacion;
+import com.hotelbackend.model.TipoHabitacion;
 import com.hotelbackend.model.enums.EstadoHabitacion;
+import com.hotelbackend.repository.HabitacionRepository;
+import com.hotelbackend.repository.TipoHabitacionRepository;
 import com.hotelbackend.service.HabitacionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,8 @@ public class HabitacionController {
 
 
     private final HabitacionService habitacionService;
+    private final TipoHabitacionRepository tipoHabitacionRepository;
+    private final HabitacionRepository habitacionRepository;
 
     @PreAuthorize("hasAuthority('HABITACION_VER')")
     @GetMapping
@@ -42,8 +48,19 @@ public class HabitacionController {
 
     @PreAuthorize("hasAuthority('HABITACION_CREAR')")
     @PostMapping
-    public Habitacion crear(@RequestBody Habitacion habitacion) {
-        return habitacionService.guardar(habitacion);
+    public Habitacion crear(@RequestBody CrearHabitacionRequest request) {
+
+        TipoHabitacion tipo = tipoHabitacionRepository
+                .findById(request.getTipoHabitacionId())
+                .orElseThrow(() -> new RuntimeException("Tipo de habitación no encontrado"));
+
+        Habitacion habitacion = new Habitacion();
+        habitacion.setNumero(request.getNumero());
+        habitacion.setPiso(request.getPiso());
+        habitacion.setTipoHabitacion(tipo);
+        habitacion.setEstado(EstadoHabitacion.DISPONIBLE);
+
+        return habitacionRepository.save(habitacion);
     }
 
     @PreAuthorize("hasAuthority('HABITACION_EDITAR')")
