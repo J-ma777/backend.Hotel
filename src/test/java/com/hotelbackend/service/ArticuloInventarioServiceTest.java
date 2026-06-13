@@ -2,7 +2,7 @@ package com.hotelbackend.service;
 
 import com.hotelbackend.model.ArticuloInventario;
 import com.hotelbackend.repository.ArticuloInventarioRepository;
-import com.hotelbackend.service.Implementaciones.ArticuloInventarioServiceImpl;
+import com.hotelbackend.service.implementaciones.ArticuloInventarioServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

@@ -8,7 +8,7 @@ import com.hotelbackend.repository.HabitacionRepository;
 import com.hotelbackend.repository.RegistroLimpiezaRepository;
 import com.hotelbackend.repository.TicketMantenimientoRepository;
 import com.hotelbackend.repository.ReservaRepository;
-import com.hotelbackend.service.Implementaciones.RegistroLimpiezaServiceImpl;
+import com.hotelbackend.service.implementaciones.RegistroLimpiezaServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

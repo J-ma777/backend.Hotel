@@ -5,7 +5,7 @@ import com.hotelbackend.model.MovimientoInventario;
 import com.hotelbackend.model.enums.TipoMovimiento;
 import com.hotelbackend.repository.ArticuloInventarioRepository;
 import com.hotelbackend.repository.MovimientoInventarioRepository;
-import com.hotelbackend.service.Implementaciones.MovimientoInventarioServiceImpl;
+import com.hotelbackend.service.implementaciones.MovimientoInventarioServiceImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

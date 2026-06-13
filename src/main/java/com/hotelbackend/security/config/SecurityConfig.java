@@ -32,6 +32,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final String GESTIONAR_USUARIOS = "GESTIONAR_USUARIOS";
+
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
 
@@ -96,11 +98,11 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
 
                         // SOLO ADMIN GESTIONA USUARIOS
-                        .requestMatchers("/usuarios/**").hasAuthority("GESTIONAR_USUARIOS")
-                        .requestMatchers("/roles/**").hasAuthority("GESTIONAR_USUARIOS")
-                        .requestMatchers("/permisos/**").hasAuthority("GESTIONAR_USUARIOS")
+                        .requestMatchers("/usuarios/**").hasAuthority(GESTIONAR_USUARIOS)
+                        .requestMatchers("/roles/**").hasAuthority(GESTIONAR_USUARIOS)
+                        .requestMatchers("/permisos/**").hasAuthority(GESTIONAR_USUARIOS)
 
-                        // Todo lo demás requiere login
+                        // Todo lo demás es lo que requiere login para que inicie
                         .anyRequest().authenticated()
                 )
 

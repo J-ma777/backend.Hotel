@@ -1,4 +1,4 @@
-package com.hotelbackend.service.Implementaciones;
+package com.hotelbackend.service.implementaciones;
 
 import com.hotelbackend.dto.request.CrearUsuarioRequest;
 import com.hotelbackend.model.Rol;
@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -69,8 +70,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         // Estado activo por defecto
         usuario.setEstado(true);
 
-        usuario.setCreadoEn(LocalDateTime.now());
-        usuario.setModificadoEn(LocalDateTime.now());
+        usuario.setCreadoEn(LocalDateTime.now(ZoneId.systemDefault()));
+        usuario.setModificadoEn(LocalDateTime.now(ZoneId.systemDefault()));
 
         return usuarioRepository.save(usuario);
     }

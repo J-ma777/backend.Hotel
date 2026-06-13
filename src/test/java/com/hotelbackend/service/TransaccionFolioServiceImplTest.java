@@ -11,7 +11,7 @@ import com.hotelbackend.repository.ArticuloInventarioRepository;
 import com.hotelbackend.repository.MovimientoInventarioRepository;
 import com.hotelbackend.repository.ReservaRepository;
 import com.hotelbackend.repository.TransaccionFolioRepository;
-import com.hotelbackend.service.Implementaciones.TransaccionFolioServiceImpl;
+import com.hotelbackend.service.implementaciones.TransaccionFolioServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

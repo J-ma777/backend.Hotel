@@ -1,4 +1,4 @@
-package com.hotelbackend.service.Implementaciones;
+package com.hotelbackend.service.implementaciones;
 
 import com.hotelbackend.dto.response.FolioResumenResponse;
 import com.hotelbackend.exception.ArticuloNoEncontradoException;

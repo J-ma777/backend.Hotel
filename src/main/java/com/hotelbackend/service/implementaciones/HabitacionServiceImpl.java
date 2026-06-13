@@ -1,4 +1,4 @@
-package com.hotelbackend.service.Implementaciones;
+package com.hotelbackend.service.implementaciones;
 
 import com.hotelbackend.dto.request.ActualizarHabitacionRequest;
 import com.hotelbackend.dto.response.HabitacionMapaResponse;

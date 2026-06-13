@@ -7,7 +7,7 @@ import com.hotelbackend.model.enums.EstadoHabitacion;
 import com.hotelbackend.model.enums.EstadoReserva;
 import com.hotelbackend.repository.HabitacionRepository;
 import com.hotelbackend.repository.ReservaRepository;
-import com.hotelbackend.service.Implementaciones.HabitacionServiceImpl;
+import com.hotelbackend.service.implementaciones.HabitacionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

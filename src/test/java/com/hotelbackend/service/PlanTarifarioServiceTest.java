@@ -2,7 +2,7 @@ package com.hotelbackend.service;
 
 import com.hotelbackend.model.PlanTarifario;
 import com.hotelbackend.repository.PlanTarifarioRepository;
-import com.hotelbackend.service.Implementaciones.PlanTarifarioServiceImpl;
+import com.hotelbackend.service.implementaciones.PlanTarifarioServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

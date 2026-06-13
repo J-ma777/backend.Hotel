@@ -8,7 +8,7 @@ import com.hotelbackend.model.enums.EstadoTicket;
 import com.hotelbackend.repository.HabitacionRepository;
 import com.hotelbackend.repository.RegistroLimpiezaRepository;
 import com.hotelbackend.repository.TicketMantenimientoRepository;
-import com.hotelbackend.service.Implementaciones.TicketMantenimientoServiceImpl;
+import com.hotelbackend.service.implementaciones.TicketMantenimientoServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
