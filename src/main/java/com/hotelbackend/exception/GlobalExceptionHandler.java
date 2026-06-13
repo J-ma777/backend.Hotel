@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
+
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -37,6 +39,14 @@ public class GlobalExceptionHandler {
         log.warn("Estado de reserva inválido: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(409, "Operación no permitida en estado actual", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UsuarioDuplicadoException.class)
+    public ResponseEntity<ErrorResponse> handleUsuarioDuplicado(UsuarioDuplicadoException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(409, "Usuario duplicado", ex.getMessage()));
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)

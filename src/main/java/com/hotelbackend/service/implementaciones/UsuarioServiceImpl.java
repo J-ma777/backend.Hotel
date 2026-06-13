@@ -1,6 +1,7 @@
 package com.hotelbackend.service.implementaciones;
 
 import com.hotelbackend.dto.request.CrearUsuarioRequest;
+import com.hotelbackend.exception.UsuarioDuplicadoException;
 import com.hotelbackend.model.Rol;
 import com.hotelbackend.model.Usuario;
 import com.hotelbackend.repository.RolRepository;
@@ -38,17 +39,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // Validar usuario duplicado
         if (usuarioRepository.findByNombreUsuario(request.getNombreUsuario()).isPresent()) {
-            throw new RuntimeException("El nombre de usuario ya está en uso");
+            throw new UsuarioDuplicadoException("El nombre de usuario ya está en uso");
         }
 
         // Validar correo duplicado
         if (usuarioRepository.existsByCorreo(request.getCorreo())) {
-            throw new RuntimeException("El correo ya está registrado");
+            throw new UsuarioDuplicadoException("El correo ya está registrado");
         }
 
         // Validar contraseña
         if (request.getContrasena() == null || request.getContrasena().isBlank()) {
-            throw new RuntimeException("La contraseña es obligatoria");
+            throw new IllegalArgumentException("La contraseña es obligatoria");
         }
 
         // Buscar rol
