@@ -63,7 +63,7 @@ class RegistroLimpiezaServiceImplTest {
                 .thenReturn(false);
 
         when(ticketMantenimientoRepository
-                .existsByHabitacionIdAndEstado(1L, EstadoTicket.ABIERTO))
+                .existsByHabitacionIdAndEstadoIn(eq(1L), anyList()))
                 .thenReturn(false);
 
         when(registroLimpiezaRepository.save(any()))
@@ -104,7 +104,7 @@ class RegistroLimpiezaServiceImplTest {
                 .thenReturn(false);
 
         when(ticketMantenimientoRepository
-                .existsByHabitacionIdAndEstado(1L, EstadoTicket.ABIERTO))
+                .existsByHabitacionIdAndEstadoIn(eq(1L), anyList()))
                 .thenReturn(true);
 
         when(registroLimpiezaRepository.save(any()))

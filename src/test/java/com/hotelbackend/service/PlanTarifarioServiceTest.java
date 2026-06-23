@@ -9,8 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.hotelbackend.model.enums.TipoTarifa;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,8 +36,8 @@ public class PlanTarifarioServiceTest {
         PlanTarifario feriado = new PlanTarifario();
         feriado.setNombre("Feriado");
 
-        when(repository.buscarPlanes(anyLong(), eq(fecha), eq(true), eq(false)))
-                .thenReturn(List.of(feriado));
+        when(repository.findTarifaPorFecha(anyLong(), eq(TipoTarifa.HOLIDAY), eq(fecha)))
+                .thenReturn(Optional.of(feriado));
 
         PlanTarifario resultado =
                 service.obtenerTarifaParaNoche(1L, fecha);
@@ -47,8 +49,8 @@ public class PlanTarifarioServiceTest {
     void lanza_excepcion_si_no_hay_tarifa() {
         LocalDate fecha = LocalDate.of(2026, 7, 29);
 
-        when(repository.buscarPlanes(anyLong(), eq(fecha), any(), any()))
-                .thenReturn(List.of());
+        when(repository.findTarifaPorFecha(anyLong(), any(TipoTarifa.class), eq(fecha)))
+                .thenReturn(Optional.empty());
 
         assertThrows(IllegalStateException.class, () ->
                 service.obtenerTarifaParaNoche(1L, fecha));

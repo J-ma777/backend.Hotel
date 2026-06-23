@@ -1,5 +1,6 @@
 package com.hotelbackend.service;
 
+import com.hotelbackend.dto.request.ActualizarHabitacionRequest;
 import com.hotelbackend.dto.response.HabitacionResponse;
 import com.hotelbackend.model.Habitacion;
 import com.hotelbackend.model.TipoHabitacion;
@@ -7,6 +8,7 @@ import com.hotelbackend.model.enums.EstadoHabitacion;
 import com.hotelbackend.model.enums.EstadoReserva;
 import com.hotelbackend.repository.HabitacionRepository;
 import com.hotelbackend.repository.ReservaRepository;
+import com.hotelbackend.repository.TipoHabitacionRepository;
 import com.hotelbackend.service.implementaciones.HabitacionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +34,9 @@ class HabitacionServiceImplTest {
 
     @Mock
     private ReservaRepository reservaRepository;
+
+    @Mock
+    private TipoHabitacionRepository tipoHabitacionRepository;
 
     @Mock
     private PlanTarifarioService planTarifarioService;
@@ -164,11 +169,10 @@ class HabitacionServiceImplTest {
     @DisplayName("Test 5 - actualizar: debe modificar los campos y retornar la habitación actualizada")
     void actualizar_cuandoIdExiste_debeActualizarYRetornarHabitacion() {
         // Arrange (organizar)
-        Habitacion datosNuevos = new Habitacion();
-        datosNuevos.setNumero("101-A");
-        datosNuevos.setPiso(3);
-        datosNuevos.setEstado(EstadoHabitacion.FUERA_DE_SERVICIO);
-        datosNuevos.setTipoHabitacion(tipoHabitacion);
+        ActualizarHabitacionRequest request = new ActualizarHabitacionRequest();
+        request.setNumero("101-A");
+        request.setPiso(3);
+        request.setTipoHabitacionId(1L);
 
         Habitacion habitacionActualizada = new Habitacion();
         habitacionActualizada.setId(1L);
@@ -178,27 +182,33 @@ class HabitacionServiceImplTest {
         habitacionActualizada.setTipoHabitacion(tipoHabitacion);
 
         when(habitacionRepository.findById(1L)).thenReturn(Optional.of(habitacion));
+        when(tipoHabitacionRepository.findById(1L)).thenReturn(Optional.of(tipoHabitacion));
         when(habitacionRepository.save(any(Habitacion.class))).thenReturn(habitacionActualizada);
 
         // Act (actuar)
-        Habitacion resultado = habitacionService.actualizar(1L, datosNuevos);
+        HabitacionResponse resultado = habitacionService.actualizar(1L, request);
 
         // Assert (afirmar)
         assertThat(resultado).isNotNull();
         assertThat(resultado.getNumero()).isEqualTo("101-A");
         assertThat(resultado.getPiso()).isEqualTo(3);
-        assertThat(resultado.getEstado()).isEqualTo(EstadoHabitacion.FUERA_DE_SERVICIO);
+        assertThat(resultado.getEstado()).isEqualTo(EstadoHabitacion.FUERA_DE_SERVICIO.name());
         verify(habitacionRepository, times(1)).findById(1L);
+        verify(tipoHabitacionRepository, times(1)).findById(1L);
         verify(habitacionRepository, times(1)).save(any(Habitacion.class));
     }
 
     @Test
     @DisplayName("Test 6 - eliminar: debe eliminar la habitación si el ID existe")
     void eliminar_debeEliminarHabitacion() {
+        // Arrange
+        when(habitacionRepository.findById(1L)).thenReturn(Optional.of(habitacion));
+        when(reservaRepository.existsByHabitacionIdAndEstadoIn(eq(1L), anyList())).thenReturn(false);
+
         // Act (actuar)
         habitacionService.eliminar(1L);
 
         // Assert (afirmar)
-        verify(habitacionRepository, times(1)).deleteById(1L);
+        verify(habitacionRepository, times(1)).delete(habitacion);
     }
 }

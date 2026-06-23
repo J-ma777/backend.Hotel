@@ -1,5 +1,6 @@
 package com.hotelbackend.service;
 
+import com.hotelbackend.dto.response.FolioResumenResponse;
 import com.hotelbackend.dto.response.ReservaResponse;
 import com.hotelbackend.exception.EstadoReservaInvalidoException;
 import com.hotelbackend.exception.HabitacionNoDisponibleException;
@@ -12,6 +13,7 @@ import com.hotelbackend.model.TipoHabitacion;
 import com.hotelbackend.model.enums.EstadoHabitacion;
 import com.hotelbackend.model.enums.EstadoReserva;
 import com.hotelbackend.repository.HabitacionRepository;
+import com.hotelbackend.repository.PlanTarifarioRepository;
 import com.hotelbackend.repository.ReservaRepository;
 import com.hotelbackend.service.implementaciones.ReservaServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +47,9 @@ class ReservaServiceImplTest {
 
     @Mock
     private PlanTarifarioService planTarifarioService;
+
+    @Mock
+    private PlanTarifarioRepository planTarifarioRepository;
 
     @InjectMocks
     private ReservaServiceImpl reservaService;
@@ -86,7 +91,12 @@ class ReservaServiceImplTest {
         request.setNombreHuesped("Juan Perez");
         request.setDocumentoHuesped("72345678");
         request.setTipoHabitacionId(1L);
+        request.setPlanTarifarioId(1L);
 
+        PlanTarifario plan = new PlanTarifario();
+        plan.setId(1L);
+
+        when(planTarifarioRepository.findById(anyLong())).thenReturn(Optional.of(plan));
         when(reservaRepository.save(any(Reserva.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -298,6 +308,8 @@ class ReservaServiceImplTest {
 
         when(reservaRepository.findById(1L))
                 .thenReturn(Optional.of(reserva));
+        when(transaccionFolioService.obtenerFolioResumen(1L))
+                .thenReturn(new FolioResumenResponse(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
 
         assertThrows(HabitacionNoDisponibleException.class,
                 () -> reservaService.realizarCheckout(1L));
