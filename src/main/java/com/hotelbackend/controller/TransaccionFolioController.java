@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/folios")
@@ -59,9 +60,16 @@ public class TransaccionFolioController {
     @PostMapping("/reservas/{reservaId}/descuentos")
     public TransaccionFolio registrarDescuento(
             @PathVariable Long reservaId,
-            @RequestParam String descripcion,
-            @RequestParam BigDecimal monto
-    ) {
+            @RequestBody Map<String, Object> payload
+    )
+    {
+        BigDecimal monto = new BigDecimal(payload.get("monto").toString());
+
+        String descripcion =
+                payload.get("descripcion") != null
+                        ? payload.get("descripcion").toString()
+                        : "Salida anticipada";
+
         return transaccionFolioService.registrarTransaccion(
                 reservaId,
                 TipoTransaccion.DESCUENTO,

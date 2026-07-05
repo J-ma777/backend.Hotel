@@ -50,6 +50,42 @@ public class TransaccionFolioServiceImpl implements TransaccionFolioService {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
 
+        if (tipo == TipoTransaccion.PAGO) {
+
+            BigDecimal saldoPendiente = obtenerSaldoReserva(reservaId);
+
+            if (saldoPendiente.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException(
+                        "La reserva ya no tiene saldo pendiente"
+                );
+            }
+
+            if (precioUnitario.compareTo(saldoPendiente) > 0) {
+                throw new RuntimeException(
+                        "El pago excede el saldo pendiente de S/ " + saldoPendiente
+                );
+            }
+        }
+
+
+        if (tipo == TipoTransaccion.DESCUENTO) {
+
+            BigDecimal saldoPendiente = obtenerSaldoReserva(reservaId);
+
+            if (saldoPendiente.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException(
+                        "La reserva ya no tiene saldo pendiente"
+                );
+            }
+
+            if (precioUnitario.compareTo(saldoPendiente) > 0) {
+                throw new RuntimeException(
+                        "El descuento excede el saldo pendiente de S/ " + saldoPendiente
+                );
+            }
+        }
+
+
         BigDecimal total = precioUnitario.multiply(BigDecimal.valueOf(cantidad));
 
         TransaccionFolio transaccion = new TransaccionFolio();
